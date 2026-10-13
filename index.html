@@ -1,3 +1,7 @@
+<!doctype html>
+<html lang="sk">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sila a pohyb na Orbite</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -182,6 +186,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.1;text-wrap:
 #splash .btn{background:#F2B10A;color:#1A1A12;font-size:1.05rem;padding:14px 24px}
 .lede{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.2em;color:#7F93AC}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.fs{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:40;width:48px;height:48px;border-radius:50%;border:2px solid var(--hazard-ink);background:var(--hazard);color:var(--hazard-ink);font-size:1.4rem;line-height:1;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3);opacity:.92}
 .labcard.alt{background:var(--ink);color:var(--bg)}
 .numrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .numin{display:flex;align-items:center;border:2px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;flex:1 1 180px;max-width:300px}
@@ -295,6 +300,8 @@ details.cheat summary{font-weight:800;cursor:pointer}
     <div id="calcBody"></div>
   </section>
 </div>
+
+<button class="fs" id="fsBtn" hidden aria-label="Zväčšiť na celú obrazovku" title="Na celú obrazovku">⛶</button>
 
 <div class="intro" id="intro" hidden>
   <div class="intro-card">
@@ -872,5 +879,15 @@ function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
  if(!$('#mission').hidden&&cur){cur.scene.step(dt);const{ctx,w,h}=fitCanvas($('#mCanvas'));cur.scene.draw(ctx,w,h)}
  if(!$('#lab').hidden){labStep(dt);labDraw();labReadout(now)}
  requestAnimationFrame(loop)}
+/* fullscreen button: only inside an iframe (e.g. embedded on another site) */
+(function(){let inF=false;try{inF=window.self!==window.top}catch(e){inF=true}
+ const b=$('#fsBtn');if(!inF||!b)return;b.hidden=false;
+ const el=document.documentElement,openTab=()=>{try{window.open(location.href,'_blank','noopener')}catch(e){}};
+ b.onclick=()=>{if(document.fullscreenElement){document.exitFullscreen();return}
+  const rq=el.requestFullscreen||el.webkitRequestFullscreen;
+  if(rq&&document.fullscreenEnabled!==false){try{const r=rq.call(el);if(r&&r.catch)r.catch(openTab);return}catch(e){}}
+  openTab()};
+ document.addEventListener('fullscreenchange',()=>{const f=!!document.fullscreenElement;b.textContent=f?'✕':'⛶';b.setAttribute('aria-label',f?'Zavrieť celú obrazovku':'Zväčšiť na celú obrazovku')});
+})();
 renderHome();renderLabUI();requestAnimationFrame(loop);
 </script>
