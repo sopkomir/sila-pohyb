@@ -1,0 +1,876 @@
+<title>Sila a pohyb na Orbite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Nákladná stanica Orbita-7: kobaltová obsluha, výstražná žltá ako jediný „výkrik“, šablónové písmo z nákladných kontajnerov.
+   Rozloženie: jeden stĺpec (mobil/tablet), scéna pokusu vždy hore, ovládanie pod ňou. */
+:root{
+  --bg:#E7ECF0; --surface:#F8FAFB; --surface2:#DCE4EA; --ink:#15212F; --muted:#556375; --line:#C4CED8;
+  --accent:#1D58C9; --accent-ink:#FFFFFF; --hazard:#F2B10A; --hazard-ink:#1A1A12;
+  --good:#13805A; --bad:#C23E2E; --earth:#B5651D;
+  --f-display:"Saira Stencil One","Arial Narrow",Impact,sans-serif;
+  --f-body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1520; --surface:#15202D; --surface2:#1D2A3A; --ink:#E5ECF3; --muted:#93A2B4; --line:#2A3A4D;
+  --accent:#6E9FFF; --accent-ink:#0B1424; --good:#3CC48A; --bad:#F07060; --earth:#E8A060; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1520; --surface:#15202D; --surface2:#1D2A3A; --ink:#E5ECF3; --muted:#93A2B4; --line:#2A3A4D;
+  --accent:#6E9FFF; --accent-ink:#0B1424; --good:#3CC48A; --bad:#F07060; --earth:#E8A060; color-scheme:dark}
+html,body{background:var(--bg);color:var(--ink)}
+[hidden]{display:none!important}
+body{font-family:var(--f-body);font-size:16px;line-height:1.5}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+.wrap{max-width:780px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+.hz{height:10px;background:repeating-linear-gradient(-45deg,var(--hazard) 0 12px,var(--hazard-ink) 12px 24px)}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-in{max-width:780px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:1.15rem;letter-spacing:.04em}
+.brand i{width:14px;height:14px;background:var(--hazard);display:inline-block;transform:rotate(45deg);border:2px solid var(--hazard-ink)}
+.tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:999px}
+.tabs button{border:0;background:transparent;padding:6px 11px;border-radius:999px;font-weight:700;font-size:.86rem;cursor:pointer}
+@media (max-width:420px){.brand span{display:none}}
+.tabs button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+
+h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.1;text-wrap:balance;margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+/* hero */
+.hero{padding-block:22px 6px;display:grid;gap:6px}
+.hero h1{font-size:clamp(2.4rem,9vw,3.6rem)}
+.hero p{margin:0;color:var(--muted);max-width:56ch}
+
+/* level */
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.lv{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 8px;text-align:left;cursor:pointer;display:grid;gap:2px;min-width:0}
+.lv b{font-size:.95rem;line-height:1.2}
+.lv span{font-size:.75rem;color:var(--muted)}
+.lv[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+/* guide */
+.guide{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:start;margin-top:18px}
+.guide .ava{width:72px;height:72px}
+.bubble{background:var(--surface);border:1px solid var(--line);border-radius:4px 16px 16px 16px;padding:12px 14px;min-width:0}
+.bubble .who{font-weight:800;font-size:.85rem}
+.bubble .who small{font-weight:600;color:var(--muted)}
+.bubble p{margin:4px 0 0}
+.spk{border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:3px 10px;font-size:.8rem;cursor:pointer;margin-top:8px}
+
+/* missions */
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:2px 12px;margin-top:28px;margin-bottom:10px}
+.sec-h h2{font-size:1.6rem}
+.mlist{display:grid;gap:10px}
+.mcard{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;cursor:pointer;text-align:left;width:100%}
+.mcard:hover{border-color:var(--accent)}
+.mcode{font-family:var(--f-mono);font-weight:700;font-size:.78rem;white-space:nowrap;background:var(--hazard);color:var(--hazard-ink);padding:4px 6px;border-radius:6px}
+.mcard h3{font-size:1.2rem}
+.mcard .tp{font-size:.82rem;color:var(--muted)}
+.stars{font-size:1rem;letter-spacing:2px;color:var(--hazard);white-space:nowrap}
+.stars .off{color:var(--line)}
+.labcard{margin-top:12px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:16px;border-radius:16px;background:var(--accent);color:var(--accent-ink);cursor:pointer;border:0;text-align:left;width:100%}
+.labcard h3{font-size:1.4rem}
+.labcard p{margin:2px 0 0;font-size:.9rem;opacity:.9}
+.labcard .go{font-family:var(--f-display);font-size:1.6rem}
+
+/* stage */
+.stage{position:relative;border-radius:16px;overflow:hidden;background:#0E1A2E;border:1px solid var(--line);margin-top:10px}
+.stage canvas{display:block;width:100%;aspect-ratio:16/10;touch-action:none}
+#labCanvas{aspect-ratio:4/3}
+@media (min-width:700px){#labCanvas{aspect-ratio:16/10}}
+#mCanvas.tall{aspect-ratio:1/1}@media (min-width:480px){#mCanvas.tall{aspect-ratio:4/3}}@media (min-width:700px){#mCanvas.tall{aspect-ratio:16/10}}
+
+/* mission screen */
+.mhead{display:flex;align-items:center;gap:10px;justify-content:space-between;padding-top:14px;flex-wrap:wrap}
+.back{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:.9rem}
+.steps{display:flex;gap:4px;flex-wrap:wrap}
+.steps span{font-family:var(--f-mono);font-size:.68rem;padding:4px 8px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.steps span.on{background:var(--ink);color:var(--bg)}
+.steps span.ok{background:var(--surface);color:var(--good);border:1px solid var(--good)}
+.mtitle{margin-top:12px;display:flex;gap:10px;align-items:center}
+.mtitle h2{font-size:clamp(1.5rem,5.5vw,2rem)}
+.panel{margin-top:14px;display:grid;gap:12px}
+.say{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:start}
+.say .ava{width:44px;height:44px}
+.say p{margin:0;font-weight:700;font-size:1.05rem}
+.opts{display:grid;gap:8px}
+.opt{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;font-weight:600;display:flex;gap:10px;align-items:flex-start}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .k{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);padding-top:2px}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,var(--surface))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 8%,var(--surface))}
+.opt:disabled{cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.sec{background:var(--surface2);color:var(--ink)}
+.btn.hz-btn{background:var(--hazard);color:var(--hazard-ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.tip{font-size:.9rem;color:var(--muted)}
+.tip b{color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.card p{margin:0}
+.card p+p{margin-top:8px}
+.verdict{border-left:6px solid var(--good)}
+.verdict.no{border-left-color:var(--hazard)}
+.myth{background:var(--surface2);border:0}
+.myth h4,.fact h4{margin:0 0 4px;font-size:.95rem}
+.fact{border-style:dashed}
+.why{font-size:.92rem;margin-top:-2px;padding:10px 12px;border-radius:10px;background:var(--surface2)}
+.qnum{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.result{text-align:center;padding:22px 16px}
+.result .big{font-size:2.4rem;letter-spacing:6px;color:var(--hazard)}
+.result .big .off{color:var(--line)}
+
+/* intro overlay */
+.intro{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--bg) 92%,transparent);display:grid;place-items:center;padding:16px;overflow:auto}
+.intro-card{max-width:520px;width:100%;background:var(--surface);border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.intro-card .emb{background:#0E1A2E;padding:12px}
+.intro-card .emb svg{display:block;width:100%;height:auto}
+.intro-in{padding:16px 18px 18px;display:grid;gap:8px}
+.intro-in h2{font-size:1.8rem}
+.intro-in p{margin:0}
+
+/* emblem animations */
+.a-stop{animation:aStop 3s ease-out infinite}
+.a-go{animation:aGo 3s linear infinite}
+@keyframes aStop{0%{transform:translateX(0)}35%,100%{transform:translateX(38px)}}
+@keyframes aGo{0%{transform:translateX(0)}100%{transform:translateX(178px)}}
+.a-fast{animation:aFast 3s ease-in infinite}
+.a-slow{animation:aSlow 3s linear infinite}
+@keyframes aFast{0%{transform:translateY(0)}30%,100%{transform:translateY(62px)}}
+@keyframes aSlow{0%{transform:translateY(0)}95%,100%{transform:translateY(62px)}}
+.a-moon{animation:aMoon 3s ease-in infinite}
+@keyframes aMoon{0%{transform:translateY(0)}70%,100%{transform:translateY(62px)}}
+.a-left{animation:aLeft 3s ease-out infinite}
+.a-right{animation:aRight 3s ease-out infinite}
+@keyframes aLeft{0%,15%{transform:translateX(0)}100%{transform:translateX(-80px)}}
+@keyframes aRight{0%,15%{transform:translateX(0)}100%{transform:translateX(34px)}}
+.a-float{animation:aFloat 6s linear infinite}
+@keyframes aFloat{0%{transform:translateX(-60px)}100%{transform:translateX(420px)}}
+@media (prefers-reduced-motion: reduce){.a-stop,.a-go,.a-fast,.a-slow,.a-moon,.a-left,.a-right,.a-float{animation:none}}
+
+/* lab */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-weight:700;font-size:.88rem;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.lab-grp{display:grid;gap:6px;margin-top:12px}
+.lab-grp > .eyebrow{margin:0}
+.read{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--f-mono);font-size:.85rem;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;font-variant-numeric:tabular-nums}
+.read b{font-family:var(--f-body)}
+.sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.sl{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;min-width:0}
+.sl label{display:flex;justify-content:space-between;font-weight:700;font-size:.85rem}
+.sl output{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.sl input{width:100%;accent-color:var(--accent)}
+.exps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.exp{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;cursor:pointer;min-width:0}
+.exp b{display:block}
+.exp span{font-size:.82rem;color:var(--muted)}
+.exp:hover{border-color:var(--accent)}
+.hint{font-size:.85rem;color:var(--muted);margin:6px 0 0}
+
+/* splash */
+#splash{position:fixed;inset:0;z-index:60;background:#0B1424;color:#E9EEF4;display:grid;grid-template-rows:auto 1fr auto;overflow:auto}
+#splash .sp-in{display:grid;place-items:center;padding:16px;gap:16px;text-align:center;align-content:center}
+#splash h1{font-size:clamp(2.8rem,12vw,4.6rem);color:#F2B10A}
+#splash p{margin:0;color:#AFC0D4;max-width:40ch}
+#splash svg{width:min(420px,100%);height:auto}
+#splash .btn{background:#F2B10A;color:#1A1A12;font-size:1.05rem;padding:14px 24px}
+.lede{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.2em;color:#7F93AC}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.labcard.alt{background:var(--ink);color:var(--bg)}
+.numrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.numin{display:flex;align-items:center;border:2px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;flex:1 1 180px;max-width:300px}
+.numin input{border:0;background:transparent;padding:12px;font:700 1.1rem var(--f-mono);color:var(--ink);width:100%;min-width:0}
+.numin input:focus{outline:none}
+.numin:focus-within{border-color:var(--accent)}
+.numin span{padding:0 12px;font-family:var(--f-mono);color:var(--muted);white-space:nowrap}
+.numin.ok{border-color:var(--good)} .numin.no{border-color:var(--bad)}
+.steps-sol{margin:6px 0 0;padding-left:22px;font-family:var(--f-mono);font-size:.88rem;display:grid;gap:4px;font-variant-numeric:tabular-nums}
+.formula{font-family:var(--f-mono);background:var(--surface);padding:2px 8px;border-radius:6px}
+.tag{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;background:var(--hazard);color:var(--hazard-ink);padding:4px 8px;border-radius:6px}
+details.cheat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+details.cheat summary{font-weight:800;cursor:pointer}
+.cheat table{border-collapse:collapse;width:100%;font-size:.9rem;margin-top:8px}
+.cheat td{padding:6px 4px;border-top:1px solid var(--line);vertical-align:top}
+.cheat td:first-child{font-family:var(--f-mono);white-space:nowrap;padding-right:14px;font-weight:700}
+.a-go2{animation:aGo2 3s linear infinite}
+@keyframes aGo2{0%{transform:translateX(0)}100%{transform:translateX(60px)}}
+.a-tug{animation:aTug 4s ease-in infinite}
+@keyframes aTug{0%,50%{transform:translateX(0)}100%{transform:translateX(26px)}}
+.a-helper{animation:aHelp 4s infinite}
+@keyframes aHelp{0%,45%{opacity:0}52%,100%{opacity:1}}
+.a-ice{animation:aIce 3s ease-out infinite}
+@keyframes aIce{0%{transform:translateX(0)}70%,100%{transform:translateX(170px)}}
+@media (prefers-reduced-motion: reduce){.a-go2,.a-tug,.a-helper,.a-ice{animation:none}}
+</style>
+
+<div id="splash" role="dialog" aria-label="Úvod">
+  <div class="hz"></div>
+  <div class="sp-in">
+    <div class="lede">NÁKLADNÁ STANICA ORBITA-7</div>
+    <svg viewBox="0 0 400 200" aria-hidden="true">
+      <defs><clipPath id="win"><circle cx="200" cy="100" r="92"/></clipPath></defs>
+      <circle cx="200" cy="100" r="98" fill="#3A4A60"/>
+      <g clip-path="url(#win)">
+        <rect x="100" y="0" width="200" height="200" fill="#050A16"/>
+        <g fill="#fff" opacity=".85"><circle cx="130" cy="40" r="1.4"/><circle cx="170" cy="70" r="1"/><circle cx="250" cy="30" r="1.6"/><circle cx="270" cy="80" r="1"/><circle cx="150" cy="150" r="1.2"/><circle cx="230" cy="160" r="1"/><circle cx="210" cy="55" r="1"/><circle cx="280" cy="130" r="1.3"/></g>
+        <circle cx="300" cy="210" r="90" fill="#2E6FB5"/><path d="M230 160c20-10 40-6 50 4s30 6 40-2v60H220z" fill="#4E9A5A"/>
+        <g class="a-float"><g transform="translate(110 80) rotate(-8)"><rect width="34" height="34" rx="3" fill="#D9822B" stroke="#6B3A12" stroke-width="2"/><rect y="13" width="34" height="8" fill="#F2B10A"/><path d="M4 21l8-8M14 21l8-8M24 21l8-8" stroke="#1A1A12" stroke-width="3"/></g></g>
+      </g>
+      <circle cx="200" cy="100" r="92" fill="none" stroke="#8A9AB0" stroke-width="6"/>
+      <g fill="#8A9AB0"><circle cx="200" cy="4" r="3"/><circle cx="296" cy="100" r="3"/><circle cx="200" cy="196" r="3"/><circle cx="104" cy="100" r="3"/></g>
+    </svg>
+    <h1>Sila a pohyb</h1>
+    <p>Debna vo vesmíre sa nikdy sama nezastaví. Prečo? Predpovedaj, vyskúšaj a zisti to na vlastné oči.</p>
+    <button class="btn" id="enter">Nastúpiť na stanicu</button>
+  </div>
+  <div class="hz"></div>
+</div>
+
+<div class="top"><div class="top-in">
+  <div class="brand"><i></i><span>ORBITA-7</span></div>
+  <div class="tabs" role="tablist">
+    <button id="tabHome" aria-pressed="true">Misie</button>
+    <button id="tabLab" aria-pressed="false">Ihrisko</button>
+    <button id="tabCalc" aria-pressed="false">Výpočty</button>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <!-- HOME -->
+  <section id="home">
+    <div class="hero">
+      <span class="eyebrow">Fyzika · Človek a príroda</span>
+      <h1>Sila a pohyb</h1>
+      <p>Šesť misií na nákladnej stanici Orbita-7, ihrisko na voľné pokusy a pre starších výpočtový trenažér.</p>
+    </div>
+    <div class="levels" id="levels">
+      <button class="lv" data-level="maly"><b>Malí piloti</b><span>1. stupeň ZŠ</span></button>
+      <button class="lv" data-level="kadet"><b>Kadeti</b><span>2. stupeň ZŠ</span></button>
+      <button class="lv" data-level="ss"><b>Inžinieri</b><span>stredná škola</span></button>
+    </div>
+    <div class="guide">
+      <div class="ava" id="gAva"></div>
+      <div class="bubble"><div class="who" id="gWho"></div><p id="gText"></p><button class="spk" id="gSpk">🔊 Prečítať</button></div>
+    </div>
+    <div class="sec-h"><h2>Misie</h2><span class="eyebrow">predpovedaj · pozoruj · vysvetli</span></div>
+    <div class="mlist" id="mlist"></div>
+    <button class="labcard" id="toLab"><div><h3>Ihrisko pokusov</h3><p>Hádž, púšťaj a narážaj. Zem, ľad, Mesiac aj vesmír.</p></div><span class="go">→</span></button>
+    <button class="labcard alt" id="toCalc"><div><h3>Výpočtový trenažér</h3><p>Príklady s meniacimi sa hodnotami, nápovedou a postupom riešenia. Pre 2. stupeň ZŠ a SŠ.</p></div><span class="go">→</span></button>
+  </section>
+
+  <!-- MISSION -->
+  <section id="mission" hidden>
+    <div class="mhead"><button class="back" id="mBack">← Misie</button><div class="steps" id="steps"></div></div>
+    <div class="mtitle"><span class="mcode" id="mCode"></span><h2 id="mTitle"></h2></div>
+    <div class="stage"><canvas id="mCanvas" aria-label="Scéna pokusu"></canvas></div>
+    <div class="panel" id="mPanel"></div>
+  </section>
+
+  <!-- LAB -->
+  <section id="lab" hidden>
+    <div class="hero"><span class="eyebrow">Voľné pokusy</span><h1 style="font-size:2rem">Ihrisko pokusov</h1>
+      <p class="hint" id="labHint">Ťukni do scény a pridaj predmet. Chyť ho prstom, potiahni a pusti – hodíš ho.</p></div>
+    <div class="stage"><canvas id="labCanvas" aria-label="Ihrisko pokusov"></canvas></div>
+    <div class="read" id="labRead"></div>
+    <div class="lab-grp"><p class="eyebrow">Kde sme</p><div class="chips" id="envChips"></div></div>
+    <div class="lab-grp"><p class="eyebrow">Čo pridám ťuknutím</p><div class="chips" id="itemChips"></div></div>
+    <div class="lab-grp"><p class="eyebrow">Zobraziť a ovládať</p><div class="chips" id="togChips"></div></div>
+    <div class="lab-grp" id="sliderGrp"><p class="eyebrow">Nastav si svet</p>
+      <div class="sliders">
+        <div class="sl"><label for="sG">Gravitačné zrýchlenie g <output id="oG"></output></label><input type="range" id="sG" min="0" max="25" step="0.01"></div>
+        <div class="sl"><label for="sMu">Súčiniteľ trenia μ <output id="oMu"></output></label><input type="range" id="sMu" min="0" max="1" step="0.01"></div>
+      </div></div>
+    <div class="lab-grp"><p class="eyebrow">Skús tieto pokusy</p><div class="exps" id="exps"></div></div>
+  </section>
+
+  <!-- CALC -->
+  <section id="calc" hidden>
+    <div class="hero"><span class="eyebrow">Výpočtový trenažér</span><h1 style="font-size:2rem">Výpočty</h1><p id="calcLede"></p></div>
+    <div id="calcBody"></div>
+  </section>
+</div>
+
+<div class="intro" id="intro" hidden>
+  <div class="intro-card">
+    <div class="hz"></div>
+    <div class="emb" id="introEmb"></div>
+    <div class="intro-in">
+      <span class="eyebrow" id="introTopic"></span>
+      <h2 id="introTitle"></h2>
+      <p id="introText"></p>
+      <div class="row" style="margin-top:6px"><button class="btn hz-btn" id="introGo">Začať misiu</button><button class="spk" id="introSpk" style="margin-top:0">🔊 Prečítať</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- utilities ---------- */
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1)), pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=(x,d=1)=>x.toFixed(d).replace('.',',');
+const MONO='"JetBrains Mono",ui-monospace,monospace', BODY='Nunito,system-ui,sans-serif', DISP='"Saira Stencil One","Arial Narrow",sans-serif';
+const tok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let level=store.get('sp_level','kadet'); if(!['maly','kadet','ss'].includes(level))level='kadet';
+let stars=store.get('sp_stars',{});
+const L=o=>(o&&typeof o==='object'&&!Array.isArray(o)&&('kadet' in o||'maly' in o||'ss' in o))?(o[level]??o.kadet??o.maly):o;
+function speak(t){try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='sk-SK';u.rate=.95;const v=s.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith('sk'));if(v)u.voice=v;s.speak(u)}catch(e){}}
+function stopSpeak(){try{window.speechSynthesis&&window.speechSynthesis.cancel()}catch(e){}}
+
+/* ---------- characters ---------- */
+const SVG_BUM=`<svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="58" fill="#1D2B44"/><line x1="60" y1="16" x2="60" y2="30" stroke="#F2B10A" stroke-width="4"/><circle cx="60" cy="14" r="6" fill="#FF6B4A"/><rect x="30" y="30" width="60" height="42" rx="13" fill="#E9EEF3"/><rect x="38" y="39" width="44" height="22" rx="9" fill="#1D2B44"/><circle cx="50" cy="50" r="5.5" fill="#6FE0FF"/><circle cx="70" cy="50" r="5.5" fill="#6FE0FF"/><path d="M52 66q8 4 16 0" stroke="#1D2B44" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="34" y="76" width="52" height="34" rx="10" fill="#F2B10A"/><rect x="34" y="86" width="52" height="9" fill="#1A1A12"/><path d="M38 95l9-9M50 95l9-9M62 95l9-9M74 95l9-9" stroke="#F2B10A" stroke-width="3"/><rect x="22" y="80" width="10" height="22" rx="5" fill="#E9EEF3"/><rect x="88" y="80" width="10" height="22" rx="5" fill="#E9EEF3"/></svg>`;
+const SVG_KIRA=`<svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="58" fill="#24344F"/><path d="M36 52c0-18 11-29 24-29s24 11 24 29v16c0 4-3 7-7 7H43c-4 0-7-3-7-7z" fill="#2A1C17"/><path d="M20 120c4-25 20-36 40-36s36 11 40 36z" fill="#3E6B8F"/><path d="M48 84l12 12 12-12" fill="#2F5675"/><rect x="53" y="74" width="14" height="12" fill="#D9A07C"/><ellipse cx="60" cy="56" rx="17" ry="20" fill="#E7B48F"/><path d="M42 50c2-14 10-20 18-20s17 6 19 19c-8-7-19-9-27-4-3 2-7 4-10 5z" fill="#2A1C17"/><circle cx="53" cy="57" r="2.2" fill="#1B1B1B"/><circle cx="67" cy="57" r="2.2" fill="#1B1B1B"/><path d="M49 52l7-1M64 51l7 1" stroke="#2A1C17" stroke-width="1.8" stroke-linecap="round"/><path d="M55 67q5 3 10 0" stroke="#8A4B3A" stroke-width="2" fill="none" stroke-linecap="round"/><rect x="72" y="100" width="16" height="10" rx="2" fill="#F2B10A"/><rect x="30" y="100" width="14" height="6" rx="2" fill="#D9E3EC"/></svg>`;
+const GUIDES={
+  maly:{svg:SVG_BUM,who:'Bum',role:'robot nakladač',text:'Ahoj, ja som Bum, robot z nákladnej stanice Orbita-7! Vozíme tu debny vesmírom. Pomôžeš mi zistiť, ako sa veci hýbu? V každej misii najprv tipneš, potom spravíme pokus a nakoniec ti poviem prečo.'},
+  kadet:{svg:SVG_KIRA,who:'Kira Vojtková',role:'veliteľka stanice',text:'Vitaj na Orbite-7, kadet. Kým ťa pustíme k nákladu, musíš pochopiť, ako sa správajú sily – lebo vo vesmíre ťa intuícia rýchlo oklame. Každá misia má štyri kroky: predpoveď, pokus, vysvetlenie a overenie.'},
+  ss:{svg:SVG_KIRA,who:'Ing. Kira Vojtková',role:'hlavná inžinierka',text:'Tu Vojtková. Na stanici nemáme trenie ani tiaž, ktoré by zakryli chyby v úvahách. Overíme si Newtonove zákony kvalitatívne aj výpočtom. Najprv predpoveď, potom meranie, potom model.'}
+};
+
+/* ---------- canvas helpers ---------- */
+function fitCanvas(cv){const r=cv.getBoundingClientRect();const dpr=Math.min(2,window.devicePixelRatio||1);const w=Math.max(1,Math.round(r.width)),h=Math.max(1,Math.round(r.height));if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return{ctx,w,h}}
+function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
+function label(ctx,txt,x,y,col='#fff',size=12,font=MONO,align='left'){ctx.font=`700 ${size}px ${font}`;{const cw=ctx.canvas.clientWidth||ctx.canvas.width,tw=ctx.measureText(txt).width,lf=align==='center'?x-tw/2:align==='right'?x-tw:x;if(lf<4)x+=4-lf;else if(lf+tw>cw-4)x-=lf+tw-(cw-4)}ctx.textAlign=align;ctx.lineJoin='round';ctx.lineWidth=3.5;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.strokeText(txt,x,y);ctx.fillStyle=col;ctx.fillText(txt,x,y);ctx.textAlign='left'}
+function pill(ctx,txt,x,y,bg='rgba(8,14,26,.72)',fg='#fff',size=11){ctx.font=`700 ${size}px ${BODY}`;const w=ctx.measureText(txt).width+14;rr(ctx,x,y,w,size+10,(size+10)/2);ctx.fillStyle=bg;ctx.fill();ctx.fillStyle=fg;ctx.fillText(txt,x+7,y+size+3);return w}
+function arrow(ctx,x1,y1,x2,y2,col,lw=3,lab){const dx=x2-x1,dy=y2-y1,Ln=Math.hypot(dx,dy);if(Ln<4)return;const ux=dx/Ln,uy=dy/Ln,hs=Math.min(11,Ln*.5);ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2-ux*hs*.7,y2-uy*hs*.7);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-ux*hs-uy*hs*.55,y2-uy*hs+ux*hs*.55);ctx.lineTo(x2-ux*hs+uy*hs*.55,y2-uy*hs-ux*hs*.55);ctx.closePath();ctx.fill();if(lab){const lx=x2+ux*8+(Math.abs(uy)>.7?6:0),ly=y2+uy*8+(Math.abs(ux)>.7?-6:4);label(ctx,lab,lx,ly,col,11,MONO,ux<-.7?'right':'left')}}
+function pillR(ctx,txt,xr,y,bg,fg,size=11){ctx.font=`700 ${size}px ${BODY}`;const w=ctx.measureText(txt).width+14;return pill(ctx,txt,xr-w,y,bg,fg,size)}
+function flame(ctx,x,cy,cs){const fl=cs*(.35+Math.random()*.25);ctx.fillStyle='#FF8A2A';ctx.beginPath();ctx.moveTo(x,cy-cs*.14);ctx.lineTo(x-fl,cy);ctx.lineTo(x,cy+cs*.14);ctx.fill();ctx.fillStyle='#FFE08A';ctx.beginPath();ctx.moveTo(x,cy-cs*.07);ctx.lineTo(x-fl*.55,cy);ctx.lineTo(x,cy+cs*.07);ctx.fill()}
+function laneTicks(ctx,k,floorY,lh,LEN,col){ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=1;ctx.font=`600 10px ${MONO}`;for(let m=0;m<=LEN;m++){const x=12+m*k;ctx.beginPath();ctx.moveTo(x,floorY+2);ctx.lineTo(x,floorY+(m%2?5:9));ctx.stroke();if(m%2===0&&m>0)ctx.fillText(m+' m',x-8,floorY+Math.min(lh*.18,20))}}
+function laneGraph(ctx,x0,y0,w,h,lanes,names,tmax,vmax){ctx.fillStyle=tok('--surface');ctx.fillRect(x0,y0,w,h);const px=x0+44,py=y0+24,pw=w-58,ph=h-54;ctx.strokeStyle=tok('--line');ctx.lineWidth=1;ctx.font=`600 10px ${MONO}`;ctx.fillStyle=tok('--muted');for(let v=0;v<=vmax;v++){const y=py+ph-v/vmax*ph;ctx.beginPath();ctx.moveTo(px,y);ctx.lineTo(px+pw,y);ctx.stroke();ctx.fillText(v+'',px-14,y+4)}for(let t=0;t<=tmax;t++)ctx.fillText(t+'',px+t/tmax*pw-3,py+ph+13);ctx.fillText('v (m/s)',x0+4,y0+14);ctx.fillText('t (s)',px+pw-28,py+ph+26);const cols=[tok('--earth'),tok('--accent'),tok('--good')];lanes.forEach((l,i)=>{ctx.strokeStyle=cols[i];ctx.lineWidth=2.5;ctx.beginPath();l.hist.forEach(([t,v],j)=>{const X=px+Math.min(t,tmax)/tmax*pw,Y=py+ph-Math.min(v,vmax)/vmax*ph;j?ctx.lineTo(X,Y):ctx.moveTo(X,Y)});ctx.stroke()});ctx.font=`700 11px ${BODY}`;let lx=x0+58;names.forEach((n,i)=>{ctx.fillStyle=cols[i];ctx.fillText('— '+n,lx,y0+14);lx+=ctx.measureText('— '+n).width+12})}
+const STARS=Array.from({length:90},()=>[Math.random(),Math.random(),Math.random()*1.3+.3]);
+function stars_(ctx,x,y,w,h){ctx.fillStyle='rgba(255,255,255,.8)';for(const s of STARS){ctx.beginPath();ctx.arc(x+s[0]*w,y+s[1]*h,s[2],0,7);ctx.fill()}}
+function drawCrate(ctx,cx,cy,s,txt){const x=cx-s/2,y=cy-s/2;rr(ctx,x,y,s,s,s*.08);ctx.fillStyle='#D9822B';ctx.fill();ctx.save();ctx.beginPath();ctx.rect(x,y+s*.4,s,s*.22);ctx.clip();ctx.fillStyle='#F2B10A';ctx.fillRect(x,y+s*.4,s,s*.22);ctx.fillStyle='#1A1A12';const st=s*.2;for(let i=-s*.3;i<s*1.2;i+=st){ctx.beginPath();ctx.moveTo(x+i,y+s*.62);ctx.lineTo(x+i+st*.45,y+s*.62);ctx.lineTo(x+i+st*.45+s*.22,y+s*.4);ctx.lineTo(x+i+s*.22,y+s*.4);ctx.fill()}ctx.restore();ctx.strokeStyle='#6B3A12';ctx.lineWidth=Math.max(1.5,s*.045);rr(ctx,x,y,s,s,s*.08);ctx.stroke();ctx.beginPath();ctx.moveTo(x+s*.15,y+s*.12);ctx.lineTo(x+s*.15,y+s*.33);ctx.moveTo(x+s*.85,y+s*.12);ctx.lineTo(x+s*.85,y+s*.33);ctx.moveTo(x+s*.15,y+s*.7);ctx.lineTo(x+s*.15,y+s*.88);ctx.moveTo(x+s*.85,y+s*.7);ctx.lineTo(x+s*.85,y+s*.88);ctx.stroke();if(txt&&s>34){ctx.fillStyle='#3A1E06';ctx.font=`${Math.round(s*.2)}px ${DISP}`;ctx.textAlign='center';ctx.fillText(txt,cx,y+s*.33);ctx.textAlign='left'}}
+function drawHammer(ctx,cx,cy,s){ctx.fillStyle='#8B5A2B';rr(ctx,cx-s*.07,cy-s*.5,s*.14,s*.8,s*.05);ctx.fill();ctx.fillStyle='#8E99A6';rr(ctx,cx-s*.36,cy+s*.22,s*.72,s*.28,s*.05);ctx.fill();ctx.fillStyle='#C3CBD4';ctx.fillRect(cx-s*.36,cy+s*.22,s*.72,s*.07)}
+function drawFeather(ctx,cx,cy,s,rot=0){ctx.save();ctx.translate(cx,cy);ctx.rotate(rot);ctx.fillStyle='#F4F1E8';ctx.strokeStyle='#9A9A90';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,-s*.5);ctx.bezierCurveTo(s*.32,-s*.25,s*.28,s*.25,0,s*.42);ctx.bezierCurveTo(-s*.26,s*.2,-s*.3,-s*.25,0,-s*.5);ctx.fill();ctx.stroke();ctx.strokeStyle='#7A6A55';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,-s*.5);ctx.lineTo(0,s*.55);ctx.stroke();ctx.strokeStyle='rgba(120,110,95,.5)';ctx.lineWidth=.8;for(let i=-3;i<=3;i++){ctx.beginPath();ctx.moveTo(0,i*s*.1);ctx.lineTo(s*.22,i*s*.1-s*.08);ctx.moveTo(0,i*s*.1);ctx.lineTo(-s*.2,i*s*.1-s*.08);ctx.stroke()}ctx.restore()}
+function drawBall(ctx,cx,cy,r,col,seam=true){const g=ctx.createRadialGradient(cx-r*.35,cy-r*.35,r*.1,cx,cy,r);g.addColorStop(0,'#fff');g.addColorStop(.25,col);g.addColorStop(1,shade(col));ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();if(seam&&r>6){ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(cx,cy,r*.98,-.6,.6);ctx.stroke();ctx.beginPath();ctx.arc(cx,cy,r*.98,Math.PI-.6,Math.PI+.6);ctx.stroke()}}
+function shade(hex){const n=parseInt(hex.slice(1),16);const r=(n>>16)*.55|0,g=((n>>8)&255)*.55|0,b=(n&255)*.55|0;return`rgb(${r},${g},${b})`}
+function drawAstro(ctx,cx,cy,h,face=1){const s=h;ctx.save();ctx.translate(cx,cy);ctx.scale(face,1);ctx.fillStyle='#C9D3DD';rr(ctx,-s*.34,-s*.18,s*.18,s*.42,s*.04);ctx.fill();ctx.fillStyle='#EEF2F6';rr(ctx,-s*.2,-s*.2,s*.4,s*.46,s*.12);ctx.fill();ctx.fillStyle='#F2B10A';ctx.fillRect(-s*.2,-s*.02,s*.4,s*.05);ctx.fillStyle='#EEF2F6';rr(ctx,-s*.17,s*.2,s*.14,s*.3,s*.06);ctx.fill();rr(ctx,s*.03,s*.2,s*.14,s*.3,s*.06);ctx.fill();rr(ctx,s*.05,-s*.14,s*.4,s*.11,s*.05);ctx.fill();ctx.fillStyle='#9AA7B5';ctx.beginPath();ctx.arc(s*.46,-s*.085,s*.06,0,7);ctx.fill();ctx.fillStyle='#EEF2F6';ctx.beginPath();ctx.arc(0,-s*.36,s*.19,0,7);ctx.fill();const g=ctx.createLinearGradient(0,-s*.46,0,-s*.26);g.addColorStop(0,'#2B5C9E');g.addColorStop(1,'#E0B046');ctx.fillStyle=g;rr(ctx,-s*.06,-s*.45,s*.22,s*.17,s*.07);ctx.fill();ctx.strokeStyle='#7E8C9B';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,-s*.36,s*.19,0,7);ctx.stroke();ctx.restore()}
+function drawBumC(ctx,cx,cy,h,face=1){const s=h;ctx.save();ctx.translate(cx,cy);ctx.scale(face,1);ctx.strokeStyle='#F2B10A';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-s*.48);ctx.lineTo(0,-s*.36);ctx.stroke();ctx.fillStyle='#FF6B4A';ctx.beginPath();ctx.arc(0,-s*.5,s*.05,0,7);ctx.fill();ctx.fillStyle='#E9EEF3';rr(ctx,-s*.24,-s*.36,s*.48,s*.32,s*.1);ctx.fill();ctx.fillStyle='#1D2B44';rr(ctx,-s*.17,-s*.29,s*.34,s*.17,s*.07);ctx.fill();ctx.fillStyle='#6FE0FF';ctx.beginPath();ctx.arc(-s*.07,-s*.205,s*.04,0,7);ctx.arc(s*.07,-s*.205,s*.04,0,7);ctx.fill();ctx.fillStyle='#F2B10A';rr(ctx,-s*.22,0,s*.44,s*.36,s*.08);ctx.fill();ctx.fillStyle='#1A1A12';ctx.fillRect(-s*.22,s*.1,s*.44,s*.07);ctx.fillStyle='#E9EEF3';rr(ctx,s*.18,s*.04,s*.3,s*.09,s*.045);ctx.fill();ctx.restore()}
+function stationBg(ctx,x,y,w,h){const g=ctx.createLinearGradient(0,y,0,y+h);g.addColorStop(0,'#1B2A42');g.addColorStop(1,'#111C2E');ctx.fillStyle=g;ctx.fillRect(x,y,w,h);ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;for(let i=x;i<x+w;i+=w/8){ctx.beginPath();ctx.moveTo(i,y);ctx.lineTo(i,y+h);ctx.stroke()}ctx.fillStyle='rgba(255,255,255,.12)';for(let i=x+w/16;i<x+w;i+=w/8){ctx.beginPath();ctx.arc(i,y+8,1.6,0,7);ctx.arc(i,y+h-8,1.6,0,7);ctx.fill()}}
+
+/* ---------- mission scenes ---------- */
+let onSceneDone=()=>{};
+function SceneInertia(){
+  const g=9.81,A=2,TT=1.2,LEN=14,MU=.15,TEND=6.5;let s;
+  function reset(){s={t:0,running:false,done:false,acc:0,lanes:[{name:'Zem · betónová podlaha',mu:MU,x:.4,v:0,hist:[[0,0]]},{name:'Orbita-7 · bez trenia',mu:0,x:.4,v:0,hist:[[0,0]]}]}}
+  reset();
+  function step(dt){if(!s.running)return;const n=Math.ceil(dt/(1/240));const h=dt/n;for(let i=0;i<n;i++){s.t+=h;for(const l of s.lanes){const th=s.t<TT?A:0,fr=l.mu*g;let a=l.v>1e-6?th-fr:Math.max(0,th-fr);l.v+=a*h;if(l.v<0)l.v=0;l.x+=l.v*h}s.acc+=h;if(s.acc>=.05){s.acc=0;s.lanes.forEach(l=>l.hist.push([s.t,l.v]))}}if(s.t>=TEND){s.running=false;s.done=true;onSceneDone()}}
+  function draw(ctx,w,h){const graph=level==='ss';const LH=graph?h*.62:h;const lh=LH/2;const k=(w-24)/LEN;
+    s.lanes.forEach((l,i)=>{const y0=i*lh;const floorY=y0+lh*.8;
+      if(i===0){const gg=ctx.createLinearGradient(0,y0,0,floorY);gg.addColorStop(0,'#CFC6B6');gg.addColorStop(1,'#E2DACB');ctx.fillStyle=gg;ctx.fillRect(0,y0,w,lh);ctx.fillStyle='#7C7466';ctx.fillRect(0,floorY,w,lh*.2);ctx.fillStyle='rgba(0,0,0,.08)';for(let j=0;j<w;j+=7){ctx.fillRect(j,floorY+((j*13)%11),2,2)}}
+      else{ctx.fillStyle='#0B1424';ctx.fillRect(0,y0,w,lh);ctx.save();ctx.beginPath();ctx.rect(0,y0,w,lh);ctx.clip();stars_(ctx,0,y0,w,lh*.8);ctx.restore();ctx.fillStyle='#3E4E64';ctx.fillRect(0,floorY,w,4);ctx.fillStyle='#26344A';ctx.fillRect(0,floorY+4,w,lh*.2-4)}
+      ctx.strokeStyle=i===0?'rgba(0,0,0,.35)':'rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.font=`600 10px ${MONO}`;ctx.fillStyle=i===0?'rgba(255,255,255,.85)':'rgba(255,255,255,.6)';
+      for(let m=0;m<=LEN;m++){const x=12+m*k;ctx.beginPath();ctx.moveTo(x,floorY+2);ctx.lineTo(x,floorY+(m%2?5:9));ctx.stroke();if(m%2===0&&m>0)ctx.fillText(m+' m',x-8,floorY+lh*.17)}
+      pill(ctx,l.name,8,y0+6,i===0?'rgba(40,30,15,.72)':'rgba(242,177,10,.92)',i===0?'#fff':'#1A1A12');
+      const cs=Math.min(.9*k,lh*.42);const cx=12+l.x*k+cs/2,cy=floorY-cs/2;
+      if(cx-cs/2<w){if(s.running&&s.t<TT){const fl=cs*(.35+Math.random()*.25);ctx.fillStyle='#FF8A2A';ctx.beginPath();ctx.moveTo(cx-cs/2,cy-cs*.14);ctx.lineTo(cx-cs/2-fl,cy);ctx.lineTo(cx-cs/2,cy+cs*.14);ctx.fill();ctx.fillStyle='#FFE08A';ctx.beginPath();ctx.moveTo(cx-cs/2,cy-cs*.07);ctx.lineTo(cx-cs/2-fl*.55,cy);ctx.lineTo(cx-cs/2,cy+cs*.07);ctx.fill()}
+        ctx.fillStyle='#5A6676';ctx.fillRect(cx-cs/2-4,cy-cs*.12,5,cs*.24);drawCrate(ctx,cx,cy,cs,'O-7');
+        if(level!=='maly'&&s.running){const sc=14;if(s.t<TT)arrow(ctx,cx,cy-cs*.7,cx+A*sc*1.4,cy-cs*.7,'#F2B10A',3,level==='ss'?'F':'motor');if(l.mu>0&&(l.v>1e-6||s.t<TT))arrow(ctx,cx,floorY-2,cx-l.mu*g*sc*1.4,floorY-2,'#FF6A5A',3,level==='ss'?'Ft':'trenie')}}
+      else{label(ctx,'→',w-20,cy+5,'#F2B10A',18,BODY)}
+      const rt=level==='maly'?(l.v>1e-3?'ide':'stojí'):`v = ${fmt(l.v,2)} m/s`;label(ctx,rt,w-10,y0+20,i===0?'#fff':'#9FE7C4',12,MONO,'right');
+      if(s.done&&i===1)label(ctx,level==='maly'?'Letí ďalej a ďalej…':'Letí ďalej rovnakou rýchlosťou…',w/2,y0+lh*.45,'#F2B10A',14,BODY,'center');
+      if(s.done&&i===0&&level==='maly')label(ctx,'Zastavila ju podlaha.',w/2,y0+lh*.45,'#fff',14,BODY,'center');
+    });
+    if(graph){const gy=LH,gh=h-LH;ctx.fillStyle=tok('--surface');ctx.fillRect(0,gy,w,gh);const px=44,py=gy+24,pw=w-px-14,ph=gh-54;const ink=tok('--ink'),mu=tok('--muted');ctx.strokeStyle=tok('--line');ctx.lineWidth=1;ctx.font=`600 10px ${MONO}`;ctx.fillStyle=mu;
+      for(let v=0;v<=3;v++){const y=py+ph-v/3*ph;ctx.beginPath();ctx.moveTo(px,y);ctx.lineTo(px+pw,y);ctx.stroke();ctx.fillText(v+'',px-14,y+4)}
+      for(let t=0;t<=6;t++){const x=px+t/6.5*pw;ctx.fillText(t+'',x-3,py+ph+13)}
+      ctx.fillText('v (m/s)',4,gy+14);ctx.fillText('t (s)',px+pw-28,py+ph+26);
+      const cols=[tok('--earth'),tok('--accent')];s.lanes.forEach((l,i)=>{ctx.strokeStyle=cols[i];ctx.lineWidth=2.5;ctx.beginPath();l.hist.forEach(([t,v],j)=>{const x=px+t/6.5*pw,y=py+ph-Math.min(v,3)/3*ph;j?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke()});
+      ctx.font=`700 11px ${BODY}`;ctx.fillStyle=cols[0];ctx.fillText('— Zem',58,gy+14);ctx.fillStyle=cols[1];ctx.fillText('— Orbita-7',112,gy+14);ctx.fillStyle=ink}
+    if(!s.running&&!s.done)label(ctx,'Pripravené na pokus',w/2,(graph?LH:h)/2+5,'#fff',13,BODY,'center');
+  }
+  return{reset,step,draw,start(){reset();s.running=true},get done(){return s.done},get running(){return s.running}};
+}
+function SceneFall(){
+  const H=1.6,TS=.5;let s;
+  function mk(){return[{kind:'hammer',k:.01,y:H,v:0,land:null},{kind:'feather',k:27.25,y:H,v:0,land:null}]}
+  function reset(){s={t:0,running:false,done:false,P:[{name:'Zem · so vzduchom',g:9.81,air:true,o:mk()},{name:'Mesiac · bez vzduchu',g:1.62,air:false,o:mk()}]}}
+  reset();
+  function step(dt){if(!s.running)return;const n=Math.ceil(dt/(1/240)),hh=dt/n*TS;for(let i=0;i<n;i++){s.t+=hh;for(const p of s.P)for(const o of p.o){if(o.land!==null)continue;const a=p.g-(p.air?o.k*o.v*o.v:0);o.v+=a*hh;o.y-=o.v*hh;if(o.y<=0){o.y=0;o.land=s.t}}}if(s.P.every(p=>p.o.every(o=>o.land!==null))){s.running=false;s.done=true;onSceneDone()}}
+  function draw(ctx,w,h){const pw=w/2;s.P.forEach((p,i)=>{const x0=i*pw;const gy=h*.84,top=h*.2,k=(gy-top)/H;
+      if(i===0){const g=ctx.createLinearGradient(0,0,0,gy);g.addColorStop(0,'#86BFE6');g.addColorStop(1,'#DDEFF8');ctx.fillStyle=g;ctx.fillRect(x0,0,pw,h);ctx.fillStyle='#5E9B4A';ctx.fillRect(x0,gy,pw,h-gy);ctx.fillStyle='#4C8239';for(let j=x0;j<x0+pw;j+=6)ctx.fillRect(j,gy,2,4+(j%5))}
+      else{ctx.fillStyle='#04060C';ctx.fillRect(x0,0,pw,h);ctx.save();ctx.beginPath();ctx.rect(x0,0,pw,gy);ctx.clip();stars_(ctx,x0,0,pw,gy);ctx.fillStyle='#2E6FB5';ctx.beginPath();ctx.arc(x0+pw*.82,h*.16,h*.06,0,7);ctx.fill();ctx.fillStyle='#4E9A5A';ctx.beginPath();ctx.arc(x0+pw*.8,h*.15,h*.03,0,7);ctx.fill();ctx.restore();ctx.fillStyle='#8D8C88';ctx.fillRect(x0,gy,pw,h-gy);ctx.fillStyle='#74736F';[[.2,.3],[.55,.6],[.8,.25]].forEach(([a,b])=>{ctx.beginPath();ctx.ellipse(x0+pw*a,gy+(h-gy)*b+3,10,3,0,0,7);ctx.fill()})}
+      ctx.fillStyle='#5A6676';ctx.fillRect(x0+pw*.22,top-16,pw*.56,6);
+      pill(ctx,p.name,x0+8,8,i===0?'rgba(20,40,60,.75)':'rgba(242,177,10,.92)',i===0?'#fff':'#1A1A12');
+      const sz=Math.min(pw*.2,(gy-top)*.3);
+      p.o.forEach((o,j)=>{const fx=pw<200?(j?.73:.27):(j?.66:.34);const cx=x0+pw*fx;const cy=gy-o.y*k-sz*.5;if(o.kind==='hammer')drawHammer(ctx,cx,cy,sz);else drawFeather(ctx,cx,cy,sz*1.1,o.land===null&&s.running&&p.air?Math.sin(s.t*9)*.35:.15);
+        if(o.land!==null){const t=level==='maly'?'dopadlo':`${fmt(o.land,2)} s`;label(ctx,t,cx,gy+13,'#fff',11,MONO,'center')}
+        else if(level==='ss'&&s.running)label(ctx,`${fmt(o.v,2)} m/s`,cx,cy-sz*.7,'#fff',10,MONO,'center')});
+      if(level!=='maly')label(ctx,`t = ${fmt(s.t,2)} s`,x0+pw/2,h-4,'#fff',10,MONO,'center');
+    });
+    ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(w/2-1,0,2,h);
+    label(ctx,'spomalené 2×',w/2,h*.5,'#FFE08A',9,MONO,'center');
+    if(s.done&&level==='maly'){label(ctx,'Na Mesiaci dopadli naraz!',w*.75,h*.62,'#F2B10A',13,BODY,'center')}
+    if(!s.running&&!s.done)label(ctx,'Výška 1,6 m',w/2,h*.2-24,'#fff',11,MONO,'center');
+  }
+  return{reset,step,draw,start(){reset();s.running=true},get done(){return s.done},get running(){return s.running}};
+}
+function ScenePush(ma,mc){
+  const F=250,TP=.4,W=10,TEND=3.4,wa=.7,wc=1.3;let s;
+  function reset(){s={t:0,running:false,done:false,xa:5-wa/2,xc:5+wc/2,va:0,vc:0}}
+  reset();
+  function step(dt){if(!s.running)return;const n=Math.ceil(dt/(1/240)),h0=dt/n;for(let i=0;i<n;i++){const h=s.t<TP?h0*.25:h0;s.t+=h;if(s.t<TP){s.va-=F/ma*h;s.vc+=F/mc*h}s.xa+=s.va*h;s.xc+=s.vc*h;if(s.xa<wa/2){s.xa=wa/2;s.va=0}if(s.xc>W-wc/2){s.xc=W-wc/2;s.vc=0}}if(s.t>=TEND){s.running=false;s.done=true;onSceneDone()}}
+  function draw(ctx,w,h){stationBg(ctx,0,0,w,h);const k=w/W;
+    ctx.fillStyle='#2A3A52';ctx.beginPath();ctx.arc(w*.5,h*.2,h*.12,0,7);ctx.fill();ctx.save();ctx.beginPath();ctx.arc(w*.5,h*.2,h*.1,0,7);ctx.clip();ctx.fillStyle='#050A16';ctx.fillRect(0,0,w,h);ctx.fillStyle='#2E6FB5';ctx.beginPath();ctx.arc(w*.5+h*.06,h*.28,h*.1,0,7);ctx.fill();ctx.restore();
+    pill(ctx,'Orbita-7 · beztiažový stav',8,8,'rgba(242,177,10,.92)','#1A1A12');
+    const cy=h*.62,hp=Math.min(wa*k*1.9,h*.42),cs=Math.min(wc*k,h*.4);
+    const ax=s.xa*k,cxp=s.xc*k;
+    if(level==='maly')drawBumC(ctx,ax,cy,hp,1);else drawAstro(ctx,ax,cy,hp,1);
+    drawCrate(ctx,cxp,cy,cs,'O-7');
+    if(level!=='maly'){label(ctx,`${ma} kg`,ax,cy+hp*.62,'#fff',11,MONO,'center');label(ctx,`${mc} kg`,cxp,cy+cs*.5+16,'#fff',11,MONO,'center')}
+    else{label(ctx,'ľahký Bum',ax,cy+hp*.62,'#fff',11,BODY,'center');label(ctx,'ťažká debna',cxp,cy+cs*.5+16,'#fff',11,BODY,'center')}
+    if(s.running&&s.t<TP){const len=Math.min(70,w*.14),yA=cy-cs*.62;const lb1=level==='ss'?'F₁₂ = 250 N':level==='kadet'?'250 N':'',lb2=level==='ss'?'F₂₁ = 250 N':level==='kadet'?'250 N':'';arrow(ctx,cxp-cs/2,yA,cxp-cs/2+len,yA,'#F2B10A',4,lb1);arrow(ctx,ax+hp*.2,yA-18,ax+hp*.2-len,yA-18,'#FF6A5A',4,lb2);label(ctx,'spomalené 4×',w-10,h-10,'#FFE08A',10,MONO,'right')}
+    if(s.t>=TP){const t1=level==='maly'?(Math.abs(s.va)>Math.abs(s.vc)?'rýchlo':'pomaly'):`${fmt(Math.abs(s.va),2)} m/s`;const t2=level==='maly'?'pomaly':`${fmt(s.vc,2)} m/s`;label(ctx,'← '+t1,ax,cy-hp*.62,'#9FE7C4',12,MONO,'center');label(ctx,t2+' →',cxp,cy-cs*.62,'#9FE7C4',12,MONO,'center')}
+    if(!s.running&&!s.done)label(ctx,'Pripravené na odtlačenie',w/2,h-12,'#fff',12,BODY,'center');
+  }
+  return{reset,step,draw,start(){reset();s.running=true},get done(){return s.done},get running(){return s.running}};
+}
+
+function SceneMass(){
+  const F=150,TT=2,LEN=14,TEND=5;let s;
+  function reset(){s={t:0,running:false,done:false,acc:0,lanes:[{m:100,x:.4,v:0,hist:[[0,0]]},{m:300,x:.4,v:0,hist:[[0,0]]}]}}
+  reset();
+  function step(dt){if(!s.running)return;const n=Math.ceil(dt/(1/240)),h=dt/n;for(let i=0;i<n;i++){s.t+=h;for(const l of s.lanes){if(s.t<TT)l.v+=F/l.m*h;l.x+=l.v*h}s.acc+=h;if(s.acc>=.05){s.acc=0;s.lanes.forEach(l=>l.hist.push([s.t,l.v]))}}if(s.t>=TEND){s.running=false;s.done=true;onSceneDone()}}
+  function draw(ctx,w,h){const graph=level==='ss',LH=graph?h*.62:h,lh=LH/2,k=(w-24)/LEN;
+    s.lanes.forEach((l,i)=>{const y0=i*lh,floorY=y0+lh*.8;ctx.fillStyle=i?'#0E1830':'#0B1424';ctx.fillRect(0,y0,w,lh);ctx.save();ctx.beginPath();ctx.rect(0,y0,w,lh);ctx.clip();stars_(ctx,0,y0,w,lh*.8);ctx.restore();ctx.fillStyle='#3E4E64';ctx.fillRect(0,floorY,w,3);ctx.fillStyle='#26344A';ctx.fillRect(0,floorY+3,w,y0+lh-floorY-3);
+      laneTicks(ctx,k,floorY,lh,LEN,'rgba(255,255,255,.55)');
+      pill(ctx,level==='maly'?(i?'ťažká debna':'ľahká debna'):`kontajner ${l.m} kg`,8,y0+6,'rgba(242,177,10,.92)','#1A1A12');
+      const cs=Math.min(.6*k,lh*.28)*Math.cbrt(l.m/100);const cx=12+l.x*k+cs/2,cy=floorY-cs/2-1;
+      if(cx-cs/2<w){if(s.running&&s.t<TT)flame(ctx,cx-cs/2-4,cy,cs);ctx.fillStyle='#5A6676';ctx.fillRect(cx-cs/2-4,cy-cs*.12,5,cs*.24);drawCrate(ctx,cx,cy,cs,'O-7');
+        if(s.running&&s.t<TT&&level!=='maly')arrow(ctx,cx,cy-cs*.5-10,cx+46,cy-cs*.5-10,'#F2B10A',3,level==='ss'?'F = 150 N':'150 N')}
+      else label(ctx,'→',w-20,cy+5,'#F2B10A',18,BODY);
+      const rt=level==='maly'?(l.v<.01?'stojí':l.v>2?'uháňa!':'ide pomaly'):`v = ${fmt(l.v,2)} m/s`+(level==='ss'&&w>=480&&s.running&&s.t<TT?`  a = ${fmt(F/l.m,2)} m/s²`:'');
+      label(ctx,rt,w-10,y0+20,'#9FE7C4',12,MONO,'right')});
+    if(graph)laneGraph(ctx,0,LH,w,h-LH,s.lanes,['100 kg','300 kg'],5,3);
+    if(!s.running&&!s.done)label(ctx,level==='maly'?'Rovnaký motor, iná debna':'Rovnaká sila, rôzna hmotnosť',w/2,(graph?LH:h)/4+5,'#fff',13,BODY,'center');}
+  return{reset,step,draw,start(){reset();s.running=true},get done(){return s.done},get running(){return s.running}};
+}
+function SceneFriction(){
+  const V0=5,g=9.81,LEN=14.5;let s;
+  const base=()=>[{mu:.1,m:8,stack:1,surf:'lad'},{mu:.4,m:8,stack:1,surf:'beton'},{mu:.4,m:16,stack:2,surf:'beton'}].map(l=>({...l,x:.3,x0:.3,v:0}));
+  function reset(){s={t:0,running:false,done:false,stopT:null,lanes:base()}}
+  reset();
+  function step(dt){if(!s.running)return;const n=Math.ceil(dt/(1/240)),h=dt/n;for(let i=0;i<n;i++){s.t+=h;for(const l of s.lanes)if(l.v>0){l.v=Math.max(0,l.v-l.mu*g*h);l.x+=l.v*h;if(l.v===0)l.x=l.x0+V0*V0/(2*l.mu*g)}}if(s.stopT===null&&s.lanes.every(l=>l.v===0))s.stopT=s.t;if(s.stopT!==null&&s.t>s.stopT+.5){s.running=false;s.done=true;onSceneDone()}}
+  function draw(ctx,w,h){const lh=h/3,k=(w-24)/LEN;
+    s.lanes.forEach((l,i)=>{const y0=i*lh,floorY=y0+lh*.78;const wg=ctx.createLinearGradient(0,y0,0,floorY);wg.addColorStop(0,'#22324A');wg.addColorStop(1,'#2E405A');ctx.fillStyle=wg;ctx.fillRect(0,y0,w,lh);
+      if(l.surf==='lad'){ctx.fillStyle='#CFEAF7';ctx.fillRect(0,floorY,w,y0+lh-floorY);ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1;for(let x=10;x<w;x+=37){ctx.beginPath();ctx.moveTo(x,floorY+3);ctx.lineTo(x+16,floorY+lh*.12);ctx.stroke()}}
+      else{ctx.fillStyle='#8E8A82';ctx.fillRect(0,floorY,w,y0+lh-floorY);ctx.fillStyle='rgba(0,0,0,.2)';for(let x=0;x<w;x+=5)ctx.fillRect(x,floorY+2+((x*7)%Math.max(4,lh*.18)),2,2)}
+      ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(0,y0+lh-1,w,1);
+      laneTicks(ctx,k,floorY,lh,14,'rgba(20,30,45,.9)');
+      const nm=level==='maly'?['ľad','betón','betón · dve debny'][i]:`${l.surf==='lad'?'ľad':'betón'} · μ = ${fmt(l.mu,1)} · ${l.m} kg`;pillR(ctx,nm,w-8,y0+5);
+      const cs=Math.min(.75*k,lh*.22);const cx=12+l.x*k+cs/2,cy=floorY-cs/2-1;
+      for(let j=0;j<l.stack;j++)drawCrate(ctx,cx,cy-j*cs,cs,j?'':'O-7');
+      if(s.running&&s.t<.3)arrow(ctx,cx-cs/2-30,cy,cx-cs/2-3,cy,'#F2B10A',3,'');
+      if(level!=='maly'&&l.v>0&&s.t>.05){const Ft=l.mu*l.m*g;arrow(ctx,cx,floorY-3,cx-Ft*.9,floorY-3,'#FF6A5A',3,level==='ss'?`Ft = ${Math.round(Ft)} N`:'Ft')}
+      if(level!=='maly'&&(s.running||s.done))label(ctx,`dráha ${fmt(l.x-l.x0,2)} m`,8,y0+18,'#FFE08A',12,MONO)});
+    if(!s.running&&!s.done)label(ctx,level==='maly'?'Každá debna dostane rovnaký štuchanec':'Každá debna dostane rýchlosť 5 m/s',w/2,h/2+5,'#fff',13,BODY,'center');
+    if(s.done&&level==='maly')label(ctx,'Na ľade došla najďalej!',w/2,lh*.5,'#FFE08A',14,BODY,'center');}
+  return{reset,step,draw,start(){reset();s.running=true;s.lanes.forEach(l=>l.v=V0)},get done(){return s.done},get running(){return s.running}};
+}
+function SceneTug(){
+  const M=200,FL=200,FR=200,FH=100,T1=2.2,TEND=5.2,X0=3.4,WW=10;let s;
+  function reset(){s={t:0,running:false,done:false,x:0,v:0}}
+  reset();
+  function step(dt){if(!s.running)return;const n=Math.ceil(dt/(1/240)),h=dt/n;for(let i=0;i<n;i++){s.t+=h;const a=s.t<T1?0:FH/M;s.v+=a*h;s.x+=s.v*h}if(s.t>=TEND){s.running=false;s.done=true;onSceneDone()}}
+  function draw(ctx,w,h){stationBg(ctx,0,0,w,h);const k=w/WW;const live=s.running||s.done;const ph2=live&&s.t>=T1;
+    const phase=!live?(level==='maly'?'Pripravené':'Pripravené na pokus'):ph2?(level==='maly'?'Pridal sa pomocník!':'Fáza 2: vpravo sa pridal pomocník'):(level==='maly'?'Ťahajú proti sebe':'Fáza 1: dvaja ťahajú proti sebe');
+    pill(ctx,phase,8,8,'rgba(242,177,10,.92)','#1A1A12');
+    const cy=h*.58,cs=Math.min(1.1*k,h*.26),hp=Math.min(1.6*k,h*.36);const cx=(X0+s.x)*k,lx=(X0+s.x-2.5)*k,rx=(X0+s.x+2.5)*k,hx=(X0+s.x+3.4)*k;
+    const bodyY=level==='maly'?cy-hp*.085:cy+hp*.085;
+    ctx.strokeStyle='#C9B48A';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx-cs/2,cy);ctx.lineTo(lx+hp*.46,cy);ctx.moveTo(cx+cs/2,cy);ctx.lineTo((ph2?hx:rx)-hp*.46,cy);ctx.stroke();
+    const fig=(x,f)=>level==='maly'?drawBumC(ctx,x,bodyY,hp,f):drawAstro(ctx,x,bodyY,hp,f);
+    fig(lx,1);fig(rx,-1);if(ph2){ctx.save();ctx.globalAlpha=Math.min(1,(s.t-T1)/.4);fig(hx,-1);ctx.restore()}
+    drawCrate(ctx,cx,cy,cs,'O-7');
+    const sc=Math.min(.3,(w*.3)/300),yA=cy-cs*.5-16,yR=cy+cs*.5+22,R=FR+(ph2?FH:0);
+    if(live){arrow(ctx,cx-2,yA,cx-2-FL*sc,yA,'#FF6A5A',4,level==='maly'?'':`${FL} N`);arrow(ctx,cx+2,yA,cx+2+R*sc,yA,'#3FA9FF',4,level==='maly'?'':`${R} N`);
+      const f=level==='maly'?BODY:MONO;
+      if(!ph2)label(ctx,level==='maly'?'Sily sa vyrovnali – debna stojí':'výslednica F = 0 N → debna stojí',cx,yR,'#9FE7C4',12,f,'center');
+      else{arrow(ctx,cx,yR-4,cx+FH*sc,yR-4,'#F2B10A',4,'');label(ctx,level==='maly'?'debna sa pohla doprava':`F = ${FH} N doprava`+(level==='ss'?`, a = ${fmt(FH/M,2)} m/s²`:''),cx,yR+16,'#F2B10A',12,f,'center')}}
+    else if(level!=='maly')label(ctx,`kontajner ${M} kg · bez trenia`,cx,yR,'#fff',11,MONO,'center');
+    if(level==='ss'&&live)label(ctx,`v = ${fmt(s.v,2)} m/s`,w-10,h-10,'#fff',11,MONO,'right');}
+  return{reset,step,draw,start(){reset();s.running=true},get done(){return s.done},get running(){return s.running}};
+}
+
+/* ---------- mission content ---------- */
+const O=(arr)=>arr; // [text, ok]
+const MISSIONS=[
+ {id:'m1',code:'M-01',title:{maly:'Debna, ktorá nechce zastaviť',kadet:'Debna, ktorá nezastaví',ss:'Zotrvačnosť nákladu'},topic:{maly:'Prečo sa veci zastavujú',kadet:'Zotrvačnosť · 1. Newtonov zákon',ss:'1. Newtonov zákon · graf v(t)'},
+  emb:`<svg viewBox="0 0 240 120"><text x="6" y="16" fill="#AFC0D4" font-size="9" font-family="monospace">ZEM</text><rect x="0" y="48" width="240" height="4" fill="#7C7466"/><g class="a-stop"><rect x="8" y="26" width="22" height="22" rx="2" fill="#D9822B" stroke="#6B3A12" stroke-width="1.5"/><rect x="8" y="35" width="22" height="5" fill="#F2B10A"/></g><text x="6" y="74" fill="#F2B10A" font-size="9" font-family="monospace">ORBITA-7</text><rect x="0" y="108" width="240" height="4" fill="#3E4E64"/><g class="a-go"><rect x="8" y="86" width="22" height="22" rx="2" fill="#D9822B" stroke="#6B3A12" stroke-width="1.5"/><rect x="8" y="95" width="22" height="5" fill="#F2B10A"/></g></svg>`,
+  intro:{maly:'Na stanici sa odpojila debna. Motorček do nej raz ťukne a hneď sa vypne. Čo urobí debna potom? Porovnáme to s rovnakou debnou na Zemi.',kadet:'Musíš pochopiť, prečo náklad na stanici nikdy „sám nezastaví“. Dáme rovnaký krátky postrk debne na Zemi a na Orbite-7.',ss:'Overíme 1. Newtonov zákon: rovnaká sila motora počas 1,2 s, dve prostredia (s trením a bez neho) a záznam grafu v(t).'},
+  scene:()=>SceneInertia(),
+  predict:{q:{maly:'Motorček do debny raz ťukne a vypne sa. Čo urobí debna na stanici, kde ju nič nebrzdí?',kadet:'Motor dá kontajneru krátky postrk a vypne sa. Čo urobí kontajner na stanici bez trenia?',ss:'Motor pôsobí na kontajner 1,2 s stálou silou a potom sa vypne. Aký bude pohyb kontajnera na stanici (bez trenia) po vypnutí motora?'},
+   opts:{maly:[['Hneď sa zastaví',0],['Pomaly spomalí a zastaví sa',0],['Pôjde ďalej stále rovnako rýchlo',1],['Bude stále zrýchľovať',0]],kadet:[['Hneď sa zastaví',0],['Postupne spomalí a zastaví sa',0],['Pôjde ďalej stále rovnako rýchlo',1],['Bude ďalej zrýchľovať',0]],ss:[['Okamžite sa zastaví',0],['Rovnomerne spomalený pohyb až do zastavenia',0],['Rovnomerný priamočiary pohyb',1],['Zrýchlený pohyb s menším zrýchlením',0]]}},
+  explain:{maly:['Veci sú trochu lenivé. Keď sa hýbu, chcú sa hýbať ďalej. Keď stoja, chcú stáť. Volá sa to zotrvačnosť.','Na Zemi debnu zastaví trenie o podlahu – podlaha ju brzdí. Na stanici ju nič nebrzdí, a tak letí ďalej aj bez motora.'],
+   kadet:['1. Newtonov zákon (zákon zotrvačnosti): teleso zotrváva v pokoji alebo v rovnomernom priamočiarom pohybe, kým naň nezačne pôsobiť sila, ktorá tento stav zmení.','Sila teda nie je potrebná na udržanie pohybu, ale na jeho zmenu. Na Zemi pôsobí proti pohybu trecia sila, preto kontajner zastaví. Na stanici trecia sila nepôsobí.'],
+   ss:['Po vypnutí motora je na stanici výslednica síl nulová: F = 0 ⇒ a = 0 ⇒ v = konšt. Graf v(t) je vodorovná priamka.','Na Zemi zostane po vypnutí motora len trecia sila Ft = μ·m·g. Spomalenie a = μ·g = 0,15 · 9,81 ≈ 1,47 m/s², preto modrá a hnedá čiara v grafe končia tak odlišne. Všimni si aj, že na Zemi sa časť sily motora „minula“ na prekonanie trenia už pri rozbehu.']},
+  myth:{t:'Mýtus: „Aby sa vec hýbala, niečo ju musí stále tlačiť.“',d:{maly:'Tlačiť treba, len keď chceš vec rozbehnúť, zastaviť alebo otočiť.',kadet:'Túto predstavu mal už Aristoteles. Vo výskumoch je to najčastejšia chyba žiakov aj dospelých. Sila pohyb mení, neudržiava ho.',ss:'Táto „aristotelovská“ predstava je vo výskumoch najčastejšou miskoncepciou v mechanike, často aj po ukončení kurzu fyziky. Sila je príčinou zmeny rýchlosti, nie rýchlosti samotnej.'}},
+  fact:'Sondy Voyager vypustené v roku 1977 dodnes letia vesmírom zotrvačnosťou bez zapnutého hlavného motora.',
+  checks:{
+   maly:[()=>({q:'Bum kopol do lopty na zamrznutom rybníku. Prečo sa lopta na ľade kĺže oveľa ďalej ako na tráve?',opts:[['Ľad ju brzdí oveľa menej ako tráva',1],['Ľad loptu tlačí dopredu',0],['Na ľade je lopta ľahšia',0]],why:'Loptu nič netlačí dopredu. Brzdí ju trenie – a na hladkom ľade je trenie veľmi malé.'}),
+         ()=>({q:'Vo vesmíre hodíš debnu. Nič jej nestojí v ceste. Čo urobí?',opts:[['Letí ďalej stále rovnako',1],['Po chvíli sa sama zastaví',0],['Vráti sa späť ku mne',0]],why:'Vo vesmíre ju nič nebrzdí, a tak letí ďalej – presne ako debna na stanici.'}),
+         ()=>({q:'Sedíš v autobuse a ten prudko zabrzdí. Kam sa nakloníš?',opts:[['Dopredu',1],['Dozadu',0],['Nikam, sedím pevne',0]],why:'Autobus zastaví, ale tvoje telo chce ísť ďalej rovnako ako predtým. Preto sa nakloníš dopredu – a preto sa v aute pripútavame.'})],
+   kadet:[()=>({q:'Hokejový puk po odpálení kĺže po ľade a pomaly spomaľuje. Čo ho spomaľuje?',opts:[['Trecia sila medzi pukom a ľadom a odpor vzduchu',1],['Sila z hokejky sa postupne minie',0],['Gravitácia ho ťahá dozadu',0]],why:'Sila hokejky pôsobí iba počas úderu. Potom puk ide zotrvačnosťou a spomaľujú ho len sily proti pohybu.'}),
+         ()=>({q:`Sonda Voyager 1 letí vesmírom už ${2026-1977} rokov bez zapnutého hlavného motora. Ako je to možné?`,opts:[['Keď ju nič nebrzdí, pohybuje sa ďalej zotrvačnosťou',1],['Neustále ju tlačí Slnko',0],['Vo vesmíre sa všetko samo zrýchľuje',0]],why:'Vo vesmíre takmer nie je čo brzdiť. Podľa zákona zotrvačnosti sonda letí ďalej bez pohonu.'}),
+         ()=>{const v=fmt(rnd(1,4),1);return{q:`Kontajner sa na stanici bez trenia pohybuje stálou rýchlosťou ${v} m/s rovno dopredu. Aká výsledná sila naň pôsobí?`,opts:[['Nulová',1],['Sila v smere pohybu, inak by zastavil',0],['Sila proti smeru pohybu',0]],why:'Stála rýchlosť znamená nulovú výslednú silu. Sila je potrebná len na zmenu rýchlosti.'}}],
+   ss:[()=>{const v=pick([90,110,130]);return{q:`Auto ide po diaľnici stálou rýchlosťou ${v} km/h. Porovnaj ťažnú silu motora a súčet odporových síl (trenie, odpor vzduchu).`,opts:[['Sú rovnako veľké, výslednica je nulová',1],['Ťažná sila je väčšia, inak by auto spomaľovalo',0],['Odporové sily sú väčšie',0]],why:'Rovnomerný priamočiary pohyb ⇒ a = 0 ⇒ F = m·a = 0. Motor iba vyrovnáva odporové sily.'}},
+       ()=>{const m=ri(4,12)*50,F=ri(2,8)*100,t=pick([1.5,2,2.5,3,4]),v=F*t/m;return{q:`Na kontajner s hmotnosťou ${m} kg pôsobil motor silou ${F} N počas ${fmt(t,1)} s a potom sa vypol. Akou rýchlosťou sa kontajner pohybuje po vypnutí motora? (Bez trenia, na začiatku stál.)`,opts:[[fmt(v,2)+' m/s',1],[fmt(F/m,2)+' m/s',0],['0 m/s, motor je vypnutý',0],[fmt(v*2,2)+' m/s',0]],why:`a = F/m = ${fmt(F/m,2)} m/s², v = a·t = ${fmt(v,2)} m/s. Po vypnutí motora je výslednica nulová, rýchlosť sa už nemení.`}},
+       ()=>({q:'Ktorý priebeh grafu v(t) zodpovedá kontajneru na stanici bez trenia PO vypnutí motora?',opts:[['Vodorovná priamka',1],['Klesajúca priamka až k nule',0],['Rastúca priamka',0],['Krivka, ktorá sa blíži k nule',0]],why:'Bez síl je a = 0, teda v = konšt. Klesajúca priamka platí na Zemi s trením (rovnomerne spomalený pohyb).'})]}
+ },
+ {id:'m2',code:'M-02',title:{maly:'Kladivo a pierko',kadet:'Kladivo a pierko',ss:'Pád na Zemi a na Mesiaci'},topic:{maly:'Čo padá rýchlejšie',kadet:'Voľný pád a odpor vzduchu',ss:'Voľný pád · odpor prostredia'},
+  emb:`<svg viewBox="0 0 240 120"><rect x="0" y="0" width="120" height="120" fill="#86BFE6"/><rect x="0" y="104" width="120" height="16" fill="#5E9B4A"/><rect x="120" y="0" width="120" height="120" fill="#04060C"/><rect x="120" y="104" width="120" height="16" fill="#8D8C88"/><text x="6" y="14" fill="#14304A" font-size="9" font-family="monospace">ZEM</text><text x="126" y="14" fill="#F2B10A" font-size="9" font-family="monospace">MESIAC</text><g class="a-fast"><rect x="36" y="26" width="5" height="14" fill="#8B5A2B"/><rect x="31" y="38" width="15" height="6" fill="#8E99A6"/></g><g class="a-slow"><path d="M84 24c7 5 6 14 0 20c-6-6-7-15 0-20z" fill="#F4F1E8" stroke="#9A9A90"/></g><g class="a-moon"><rect x="156" y="26" width="5" height="14" fill="#8B5A2B"/><rect x="151" y="38" width="15" height="6" fill="#8E99A6"/><path d="M204 24c7 5 6 14 0 20c-6-6-7-15 0-20z" fill="#F4F1E8" stroke="#9A9A90"/></g></svg>`,
+  intro:{maly:'Pustíme naraz kladivo a pierko. Najprv na Zemi a potom na Mesiaci, kde nie je vzduch. Čo dopadne prvé?',kadet:'Padajú ťažšie veci rýchlejšie? Zopakujeme slávny pokus, ktorý astronauti naozaj urobili na Mesiaci.',ss:'Voľný pád v dvoch tiažových poliach – na Zemi s odporom vzduchu, na Mesiaci bez neho. Sleduj časy dopadu.'},
+  scene:()=>SceneFall(),
+  predict:{q:{maly:'Na Mesiaci nie je vzduch. Pustíme naraz kladivo a pierko. Čo dopadne prvé?',kadet:'Na Mesiaci pustíme z výšky 1,6 m naraz kladivo (1,3 kg) a ľahučké pierko. Čo dopadne prvé?',ss:'Na Mesiaci (bez atmosféry) pustíme z výšky 1,6 m naraz kladivo s hmotnosťou 1,3 kg a pierko s hmotnosťou niekoľkých gramov. Čo platí?'},
+   opts:{maly:[['Kladivo',0],['Pierko',0],['Dopadnú naraz',1],['Pierko sa bude vznášať',0]],ss:[['Kladivo dopadne skôr, pôsobí naň väčšia tiažová sila',0],['Pierko dopadne skôr',0],['Dopadnú súčasne',1],['Pierko sa bude vznášať, Mesiac má slabú gravitáciu',0]]}},
+  explain:{maly:['Zem aj Mesiac priťahujú všetky veci. Keby ich nič nebrzdilo, padali by rovnako rýchlo.','Na Zemi pierko brzdí vzduch, lebo je ľahučké a má veľkú plochu. Na Mesiaci vzduch nie je, preto kladivo a pierko dopadli naraz.'],
+   kadet:['Bez odporu vzduchu padajú všetky telesá s rovnakým zrýchlením. Na Zemi je g ≈ 9,81 m/s², na Mesiaci len g ≈ 1,62 m/s², preto tam pád trvá dlhšie.','Hmotnosť na rýchlosť pádu nemá vplyv. Rozdiel na Zemi spôsobuje odpor vzduchu, ktorý závisí od tvaru, veľkosti a rýchlosti telesa.'],
+   ss:['Na ťažšie teleso pôsobí väčšia tiažová sila F = m·g, ale má aj väčšiu zotrvačnosť. Zrýchlenie a = F/m = g je preto pre všetky telesá rovnaké.','Na Zemi pôsobí aj odpor vzduchu F₀ ≈ ½·C·ρ·S·v², ktorý rastie s rýchlosťou. Pierko rýchlo dosiahne medznú rýchlosť, keď sa F₀ vyrovná s m·g, a ďalej padá rovnomerne. Na Mesiaci: t = √(2h/g) = √(2·1,6/1,62) ≈ 1,41 s pre obe telesá.']},
+  myth:{t:'Mýtus: „Ťažšie veci padajú rýchlejšie.“',d:{maly:'To, čo vidíš na Zemi, robí vzduch. Bez vzduchu padá všetko rovnako.',kadet:'Tvrdil to Aristoteles a ľudia tomu verili takmer 2000 rokov, kým Galileo Galilei neukázal opak.',ss:'Aristotelova predstava pretrvala takmer dve tisícročia. Vyvrátil ju až Galileo; Newtonov 2. zákon ukazuje, prečo sa hmotnosť vo výsledku krátí.'}},
+  fact:'Naozaj sa to stalo: 2. augusta 1971 astronaut David Scott (Apollo 15) pustil na Mesiaci kladivo a sokolie pierko. Dopadli naraz.',
+  checks:{
+   maly:[()=>({q:'Na Zemi pustíš naraz kameň a list papiera. Prečo list padá pomalšie?',opts:[['Brzdí ho vzduch',1],['Ľahké veci padajú vždy pomalšie',0],['Zem list nepriťahuje',0]],why:'List má veľkú plochu a vzduch ho brzdí. Pokrč ho do guľôčky a padne skoro ako kameň.'}),
+         ()=>({q:'Pustíš naraz papier pokrčený do guľôčky a rovný papier. Ktorý dopadne skôr?',opts:[['Guľôčka',1],['Rovný papier',0],['Naraz, je to rovnaký papier',0]],why:'Oba papiere sú rovnako ťažké, ale guľôčku vzduch brzdí menej.'}),
+         ()=>({q:'Na Mesiaci nie je vzduch. Bum pustí naraz loptu a pierko. Čo dopadne prvé?',opts:[['Dopadnú naraz',1],['Lopta',0],['Pierko',0]],why:'Bez vzduchu ich nič nebrzdí, a tak padajú rovnako rýchlo.'})],
+   kadet:[()=>{const m1=ri(1,2),f=ri(3,6),m2=m1*f;return{q:`Z rovnakej výšky pustíš dve rovnako veľké gule: drevenú (${m1} kg) a železnú (${m2} kg). Odpor vzduchu je pri nich malý. Čo pozoruješ?`,opts:[['Dopadnú takmer naraz',1],[`Železná dopadne ${f}-krát skôr`,0],['Drevená dopadne skôr',0]],why:'Rýchlosť voľného pádu nezávisí od hmotnosti. Tento omyl vyvrátil už Galileo Galilei.'}},
+         ()=>({q:'Prečo má padák taký veľký vrchlík?',opts:[['Veľká plocha zväčšuje odpor vzduchu, takže parašutista padá pomaly',1],['Aby bol parašutista ľahší',0],['Aby ho Zem menej priťahovala',0]],why:'Hmotnosť ani príťažlivosť sa nemenia. Väčšia plocha znamená väčší odpor vzduchu.'}),
+         ()=>({q:'Vo vákuovej trubici (bez vzduchu) padá pierko a minca. Čo platí?',opts:[['Padajú rovnako rýchlo',1],['Minca padá rýchlejšie, lebo je ťažšia',0],['Pierko sa vznáša na mieste',0]],why:'Bez vzduchu nič nebrzdí ani pierko, a tak padá rovnako ako minca.'})],
+   ss:[()=>{const h=ri(2,10),t=Math.sqrt(2*h/1.62);return{q:`Na Mesiaci (g = 1,62 m/s²) pustíš kladivo z výšky ${h} m. Za aký čas dopadne?`,opts:[[fmt(t,2)+' s',1],[fmt(Math.sqrt(2*h/9.81),2)+' s',0],[fmt(h/1.62,2)+' s',0],[fmt(2*h/1.62,2)+' s',0]],why:`h = ½·g·t² ⇒ t = √(2h/g) = ${fmt(t,2)} s. Hmotnosť do výpočtu vôbec nevstupuje.`}},
+       ()=>({q:'Zem pôsobí na ťažšie teleso väčšou tiažovou silou. Prečo teda (bez vzduchu) nepadá s väčším zrýchlením?',opts:[['Má aj väčšiu hmotnosť, teda zotrvačnosť; a = F/m vychádza rovnaké',1],['Väčšiu silu vyrovná väčší odpor vzduchu',0],['Tiažová sila v skutočnosti od hmotnosti nezávisí',0]],why:'F = m·g aj zotrvačnosť rastú s m rovnako, preto a = m·g / m = g.'}),
+       ()=>({q:'Parašutista padá ustálenou (stálou) rýchlosťou. Čo platí pre sily, ktoré naň pôsobia?',opts:[['Tiažová sila a odpor vzduchu sú v rovnováhe',1],['Tiažová sila je stále väčšia ako odpor',0],['Gravitácia už na neho nepôsobí',0]],why:'Stála rýchlosť ⇒ a = 0 ⇒ výslednica je nulová. Gravitácia pôsobí stále, odpor ju vyrovnáva.'})]}
+ },
+ {id:'m3',code:'M-03',title:{maly:'Kto tlačí silnejšie?',kadet:'Kto tlačí silnejšie?',ss:'Akcia, reakcia, hybnosť'},topic:{maly:'Tlačím ja – tlačia aj mňa',kadet:'Akcia a reakcia · 3. Newtonov zákon',ss:'3. Newtonov zákon · zachovanie hybnosti'},
+  emb:`<svg viewBox="0 0 240 120"><rect width="240" height="120" fill="#1B2A42"/><text x="6" y="14" fill="#F2B10A" font-size="9" font-family="monospace">BEZTIAŽ</text><g class="a-left"><circle cx="104" cy="52" r="9" fill="#EEF2F6"/><rect x="96" y="62" width="16" height="22" rx="5" fill="#EEF2F6"/><rect x="104" y="64" width="14" height="5" rx="2" fill="#EEF2F6"/></g><g class="a-right"><rect x="120" y="44" width="44" height="44" rx="3" fill="#D9822B" stroke="#6B3A12" stroke-width="2"/><rect x="120" y="61" width="44" height="10" fill="#F2B10A"/></g></svg>`,
+  intro:{maly:'Bum sa vznáša v stanici a odtlačí sa od veľkej ťažkej debny. Kto koho tlačí silnejšie? A kto odletí rýchlejšie?',kadet:'Ľahký astronaut, ťažký kontajner, jeden postrk. Kto na koho pôsobí väčšou silou?',ss:'Akcia a reakcia v beztiažovom stave. Zmeriame rýchlosti po odtlačení a porovnáme hybnosti.'},
+  scene:(c)=>ScenePush(c.ma,c.mc),
+  predict:{q:{maly:'Bum sa odtlačí od veľkej ťažkej debny. Kto koho tlačí silnejšie?',kadet:c=>`Astronaut (${c.ma} kg) sa odtlačí od kontajnera (${c.mc} kg). Čo platí o silách počas odtláčania?`,ss:c=>`Astronaut (${c.ma} kg) sa odtlačí od kontajnera (${c.mc} kg). Čo platí o silách, ktorými na seba počas odtláčania pôsobia?`},
+   opts:{maly:[['Bum tlačí debnu silnejšie',0],['Ťažká debna tlačí Buma silnejšie',0],['Tlačia sa navzájom rovnako silno',1],['Debna netlačí vôbec, tlačí iba Bum',0]],kadet:[['Astronaut pôsobí väčšou silou, veď on tlačí',0],['Kontajner pôsobí väčšou silou, je ťažší',0],['Obe sily sú rovnako veľké a opačného smeru',1],['Kontajner na astronauta nepôsobí žiadnou silou',0]]}},
+  explain:{maly:['Keď do niečoho tlačíš, to niečo tlačí aj do teba – rovnako silno, len opačným smerom. Preto sa Bum aj debna od seba odsunuli.','Ľahký Bum odletel rýchlejšie. Ťažkú debnu je ťažšie rozpohybovať, preto išla pomalšie.'],
+   kadet:['3. Newtonov zákon: sily, ktorými na seba dve telesá pôsobia, sú rovnako veľké a opačného smeru. Voláme ich akcia a reakcia. Každá pôsobí na iné teleso, preto sa navzájom nerušia.','Rovnaká sila rozpohybuje ľahšie teleso viac. To vyplýva z 2. Newtonovho zákona: a = F/m.'],
+   ss:['F₁₂ = −F₂₁ počas celej doby kontaktu Δt. Impulzy síl sú teda rovnaké: F·Δt = mₐ·vₐ = mₖ·vₖ.','Celková hybnosť sústavy bola na začiatku nulová a nulová aj zostala: mₐ·vₐ + mₖ·vₖ = 0. Pomer rýchlostí je obrátený pomer hmotností: vₐ/vₖ = mₖ/mₐ.']},
+  myth:{t:'Mýtus: „Väčší, ťažší alebo aktívnejší tlačí viac.“',d:{maly:'Aj keď tlačí iba Bum, debna tlačí rovnako silno späť.',kadet:'Patrí medzi najčastejšie omyly – mýli sa v ňom aj veľa dospelých. Rozdiel nie je v sile, ale v tom, kto sa viac rozpohybuje.',ss:'Vo výskumoch ide o jednu z najodolnejších miskoncepcií – objavuje sa aj u študentov učiteľstva fyziky. Pomôže otázka: na ktoré teleso tá sila pôsobí?'}},
+  fact:'Astronauti sa pri výstupe do voľného priestoru môžu pohybovať odrazom od lode. Preto sú vždy pripútaní lanom – bez neho by sa už nemali od čoho odraziť späť.',
+  checks:{
+   maly:[()=>({q:'Bum stojí na skejtborde a odtlačí sa rukami od steny. Čo sa stane?',opts:[['Bum odíde preč od steny',1],['Stena sa pohne',0],['Nič, stena je tvrdá',0]],why:'Bum tlačí stenu a stena tlačí Buma späť. Stena je pevne pri zemi, ale Bum na kolieskach odíde.'}),
+         ()=>({q:'Keď plávaš, odtláčaš rukami vodu dozadu. Kam sa pohneš ty?',opts:[['Dopredu',1],['Dozadu',0],['Nikam',0]],why:'Tlačíš vodu dozadu a voda tlačí teba dopredu.'}),
+         ()=>({q:'Nafúkaný balón pustíš a vzduch z neho uniká dozadu. Kam letí balón?',opts:[['Dopredu, opačne ako vzduch',1],['Dozadu za vzduchom',0],['Hneď spadne dole',0]],why:'Balón tlačí vzduch von a vzduch tlačí balón opačným smerom. Takto lietajú aj rakety.'})],
+   kadet:[()=>({q:'Kamión narazí do malého auta. Ktoré z nich pôsobí na druhé väčšou silou?',opts:[['Obe rovnako veľkou silou',1],['Kamión',0],['Malé auto',0]],why:'Sily sú rovnaké (akcia a reakcia). Malé auto sa však rozpohybuje a poškodí viac, lebo má oveľa menšiu hmotnosť.'}),
+         ()=>{let ma=ri(55,80),mc=ri(9,22)*10;if(Math.random()<.4){ma=ri(80,95);mc=ri(30,60)}return{q:`Astronaut (${ma} kg) a kontajner (${mc} kg) sa na stanici od seba odtlačia. Kto sa pohne rýchlejšie?`,opts:[['Astronaut',ma<mc?1:0],['Kontajner',mc<ma?1:0],['Oba rovnako rýchlo',0]],why:'Sily sú rovnaké, ale ľahšie teleso získa väčšiu rýchlosť (a = F/m).'}},
+         ()=>({q:'Ako sa raketa pohybuje vo vesmíre, kde nie je vzduch, od ktorého by sa odrazila?',opts:[['Vyhadzuje plyny dozadu a plyny tlačia raketu dopredu',1],['Odráža sa od vesmírneho prachu',0],['Ťahá ju Mesiac',0]],why:'Raketa tlačí plyny von a plyny tlačia raketu opačným smerom. Vzduch na to nepotrebuje.'})],
+   ss:[()=>({q:'Kniha leží na stole. Ktorá sila je podľa 3. Newtonovho zákona reakciou na tiažovú silu, ktorou Zem pôsobí na knihu?',opts:[['Gravitačná sila, ktorou kniha priťahuje Zem',1],['Sila, ktorou stôl tlačí na knihu',0],['Sila, ktorou kniha tlačí na stôl',0]],why:'Akcia a reakcia sú rovnakého druhu a pôsobia na dve telesá tej istej dvojice: Zem → kniha, kniha → Zem. Sila stola na knihu je iná dvojica.'}),
+       ()=>{const ma=ri(60,90),mc=ri(10,30)*10,vc=ri(2,9)/10,va=mc*vc/ma;return{q:`Astronaut (${ma} kg) odtlačí kontajner (${mc} kg), ktorý sa potom pohybuje rýchlosťou ${fmt(vc,1)} m/s. Akou rýchlosťou sa pohybuje astronaut? (Na začiatku obaja stáli.)`,opts:[[fmt(va,2)+' m/s opačným smerom',1],[fmt(vc,1)+' m/s opačným smerom',0],[fmt(ma*vc/mc,2)+' m/s opačným smerom',0],['0 m/s, tlačil len on',0]],why:`Hybnosť sa zachováva: 0 = mₐ·vₐ + mₖ·vₖ ⇒ |vₐ| = mₖ·vₖ / mₐ = ${fmt(va,2)} m/s.`}},
+       ()=>({q:'Kôň ťahá voz. Podľa 3. zákona voz ťahá koňa rovnako veľkou silou opačne. Prečo sa predsa pohnú?',opts:[['Akcia a reakcia pôsobia na rôzne telesá; o pohybe koňa rozhoduje aj sila, ktorou ho tlačí zem, keď sa od nej odráža',1],['Kôň pôsobí na voz väčšou silou',0],['Reakcia sa prejaví až s oneskorením',0]],why:'Sily z jednej dvojice sa nesčítavajú, lebo pôsobia na rôzne telesá. Pre pohyb koňa sú dôležité všetky sily pôsobiace na neho – aj trecia sila od zeme.'})]}
+ }
+];
+
+/* ---------- missions 4–6 ---------- */
+MISSIONS.push(
+ {id:'m4',code:'M-04',title:{maly:'Ľahká a ťažká debna',kadet:'Ťažký náklad',ss:'Sila, hmotnosť, zrýchlenie'},topic:{maly:'Čo sa rozbehne ľahšie',kadet:'2. Newtonov zákon',ss:'2. Newtonov zákon · F = m·a'},
+  emb:`<svg viewBox="0 0 240 120"><rect width="240" height="120" fill="#0B1424"/><text x="6" y="14" fill="#F2B10A" font-size="9" font-family="monospace">100 kg</text><rect x="0" y="52" width="240" height="3" fill="#3E4E64"/><g class="a-go"><rect x="8" y="34" width="18" height="18" rx="2" fill="#D9822B" stroke="#6B3A12" stroke-width="1.5"/><rect x="8" y="41" width="18" height="4" fill="#F2B10A"/></g><text x="6" y="72" fill="#F2B10A" font-size="9" font-family="monospace">300 kg</text><rect x="0" y="112" width="240" height="3" fill="#3E4E64"/><g class="a-go2"><rect x="8" y="86" width="26" height="26" rx="2" fill="#D9822B" stroke="#6B3A12" stroke-width="1.5"/><rect x="8" y="96" width="26" height="6" fill="#F2B10A"/></g></svg>`,
+  intro:{maly:'Dva rovnaké motory tlačia dve debny – ľahkú a ťažkú. Ktorá sa rozbehne rýchlejšie?',kadet:'Na nakladacej rampe máme dva kontajnery: 100 kg a 300 kg. Oba tlačí rovnaký motor rovnako dlho. Zistíme, čo urobí hmotnosť.',ss:'Rovnaká sila 150 N pôsobí 2 s na telesá s hmotnosťou 100 kg a 300 kg. Zrýchlenia porovnáme zo sklonu grafu v(t).'},
+  scene:()=>SceneMass(),
+  predict:{q:{maly:'Rovnaký motor chvíľu tlačí ľahkú a ťažkú debnu. Ktorá sa rozbehne rýchlejšie?',kadet:'Rovnaký motor (150 N) tlačí 2 s kontajner 100 kg a kontajner 300 kg. Akú rýchlosť získa ťažší kontajner v porovnaní s ľahším?',ss:'Rovnaká sila 150 N pôsobí 2 s na kontajnery 100 kg a 300 kg (bez trenia). Čo platí o ich zrýchleniach a o pohybe po vypnutí motora?'},
+   opts:{maly:[['Ľahká',1],['Ťažká',0],['Obe rovnako',0]],kadet:[['Trikrát menšiu',1],['Rovnakú, motor je predsa rovnaký',0],['Ťažší sa vôbec nepohne',0],['Trikrát väčšiu',0]],ss:[['a₁ = 3·a₂; po vypnutí sa oba pohybujú rovnomerne',1],['a₁ = 3·a₂; po vypnutí oba spomaľujú',0],['Zrýchlenia sú rovnaké, sila je rovnaká',0],['a₁ = 9·a₂',0]]}},
+  explain:{maly:['Ťažkú debnu je ťažšie rozbehnúť. Rovnaký motor ju rozbehol iba pomaly, ľahkú rýchlo.','Keď motor prestal tlačiť, obe debny leteli ďalej – každá takou rýchlosťou, akú stihla získať.'],
+   kadet:['2. Newtonov zákon: zrýchlenie telesa je tým väčšie, čím väčšia sila naň pôsobí, a tým menšie, čím väčšiu hmotnosť má teleso: a = F / m.','Kontajner s trojnásobnou hmotnosťou získal od rovnakej sily trojnásobne menšie zrýchlenie, a preto aj trojnásobne menšiu rýchlosť: 1 m/s namiesto 3 m/s.'],
+   ss:['a₁ = F/m₁ = 150/100 = 1,5 m/s², a₂ = 150/300 = 0,5 m/s². Sklon priamky v grafe v(t) je práve zrýchlenie.','Po vypnutí motora je F = 0, a preto a = 0: oba kontajnery pokračujú rovnomerne (v₁ = 3 m/s, v₂ = 1 m/s). Sila neurčuje rýchlosť, ale jej zmenu za čas: F = m·Δv/Δt.']},
+  myth:{t:'Mýtus: „Čím väčšia sila, tým väčšia rýchlosť.“',d:{maly:'Sila veci rozbieha a zastavuje. Keď prestane pôsobiť, vec si svoju rýchlosť nechá.',kadet:'Sila neurčuje rýchlosť, ale to, ako rýchlo sa rýchlosť mení. Aj malá sila, ktorá pôsobí dlho, dokáže teleso rozbehnúť veľmi rýchlo.',ss:'Predstava „v ∝ F“ patrí podľa výskumov k najčastejším a vedie k chybne nakresleným grafom. Správne je a ∝ F.'}},
+  fact:'Sonda Dawn mala iónový motor s ťahom porovnateľným s tiažou listu papiera. Pôsobil však takmer nepretržite celé roky, a tak jej postupne zmenil rýchlosť o viac ako 11 km/s.',
+  checks:{
+   maly:[()=>({q:'Prázdny a plný nákupný vozík tlačíš rovnako silno. Ktorý sa rozbehne rýchlejšie?',opts:[['Prázdny',1],['Plný',0],['Oba rovnako',0]],why:'Prázdny vozík je ľahší, a preto ho rovnako silné potlačenie rozbehne rýchlejšie.'}),
+         ()=>({q:'Bum chce rozbehnúť ťažkú debnu rovnako rýchlo ako ľahkú. Čo musí urobiť?',opts:[['Tlačiť silnejšie',1],['Tlačiť slabšie',0],['Nič, pôjde to samo',0]],why:'Ťažšiu vec treba tlačiť väčšou silou, aby sa rozbehla rovnako rýchlo.'}),
+         ()=>({q:'Rovnako silno hodíš tenisovú loptičku a ťažkú medicinbalovú loptu. Ktorá poletí rýchlejšie?',opts:[['Tenisová loptička',1],['Medicinbal',0],['Obe rovnako',0]],why:'Ľahkú loptičku rovnaká sila rozbehne oveľa viac ako ťažký medicinbal.'})],
+   kadet:[()=>({q:'Na prázdny a plne naložený vozík pôsobí rovnaká sila. Prečo sa plný rozbieha pomalšie?',opts:[['Má väčšiu hmotnosť, a teda väčšiu zotrvačnosť',1],['Pôsobí naň menšia sila',0],['Ťažké veci sa nemôžu pohybovať rýchlo',0]],why:'Sila je rovnaká, ale väčšia hmotnosť znamená menšie zrýchlenie: a = F / m.'}),
+         ()=>{const F=ri(2,9)*50,m=ri(2,8)*25,a=F/m;return{q:`Sila ${F} N udelí kontajneru zrýchlenie ${fmt(a,2)} m/s². Aké zrýchlenie mu udelí dvojnásobná sila?`,opts:[[fmt(2*a,2)+' m/s²',1],[fmt(a,2)+' m/s²',0],[fmt(a/2,2)+' m/s²',0],[fmt(4*a,2)+' m/s²',0]],why:'Zrýchlenie je priamo úmerné sile: dvojnásobná sila znamená dvojnásobné zrýchlenie.'}},
+         ()=>({q:'Motor tlačí kontajner na stanici stálou silou (bez trenia). Ako sa mení rýchlosť kontajnera?',opts:[['Rovnomerne rastie',1],['Je stále rovnaká',0],['Rastie, potom sa sama ustáli',0]],why:'Stála výsledná sila znamená stále zrýchlenie, a teda rovnomerne rastúcu rýchlosť.'})],
+   ss:[()=>({q:'Grafy v(t) dvoch kontajnerov počas pôsobenia rovnakej sily sú dve rastúce priamky. Čo vyjadruje ich sklon?',opts:[['Zrýchlenie; strmšia priamka patrí ľahšiemu kontajneru',1],['Rýchlosť; strmšia patrí ťažšiemu',0],['Silu; obe sú preto rovnako strmé',0]],why:'Sklon v(t) je a = Δv/Δt = F/m. Pri rovnakej sile má ľahšie teleso väčšie zrýchlenie.'}),
+       ()=>({q:'Ak na teleso pôsobíme dvojnásobnou silou a zároveň zdvojnásobíme jeho hmotnosť, zrýchlenie…',opts:[['zostane rovnaké',1],['sa zdvojnásobí',0],['sa zväčší štvornásobne',0],['klesne na polovicu',0]],why:'a = 2F / 2m = F / m.'}),
+       ()=>{const m=ri(4,20)*50,F=ri(2,9)*100,t=ri(3,8);return{q:`Kontajner (${m} kg) stojí. Motor naň pôsobí silou ${F} N počas ${t} s, potom sa vypne. Ktorý graf v(t) opisuje celý pohyb?`,opts:[['Rastúca priamka, potom vodorovná priamka',1],['Rastúca priamka, potom klesajúca až k nule',0],['Vodorovná priamka po celý čas',0],['Rastúca krivka, ktorá sa sama ustáli',0]],why:`Počas ${t} s je a = F/m = ${fmt(F/m,2)} m/s² (rastúca priamka). Po vypnutí je F = 0 ⇒ v = konšt.`}}]}},
+ {id:'m5',code:'M-05',title:{maly:'Preťahovanie',kadet:'Preťahovanie',ss:'Výslednica síl'},topic:{maly:'Keď sa sily vyrovnajú',kadet:'Skladanie síl · rovnováha',ss:'Skladanie síl · rovnováha · F = m·a'},
+  emb:`<svg viewBox="0 0 240 120"><rect width="240" height="120" fill="#1B2A42"/><g class="a-tug"><line x1="40" y1="62" x2="102" y2="62" stroke="#C9B48A" stroke-width="3"/><line x1="138" y1="62" x2="214" y2="62" stroke="#C9B48A" stroke-width="3"/><rect x="102" y="44" width="36" height="36" rx="3" fill="#D9822B" stroke="#6B3A12" stroke-width="2"/><rect x="102" y="58" width="36" height="8" fill="#F2B10A"/><circle cx="32" cy="50" r="8" fill="#EEF2F6"/><rect x="25" y="58" width="14" height="22" rx="5" fill="#EEF2F6"/><circle cx="182" cy="50" r="8" fill="#EEF2F6"/><rect x="175" y="58" width="14" height="22" rx="5" fill="#EEF2F6"/><g class="a-helper"><circle cx="210" cy="50" r="8" fill="#F2B10A"/><rect x="203" y="58" width="14" height="22" rx="5" fill="#F2B10A"/></g></g></svg>`,
+  intro:{maly:'Dvaja roboti sa preťahujú o debnu. Debna stojí. Znamená to, že ju nikto neťahá? A čo sa stane, keď príde pomocník?',kadet:'Dvaja astronauti ťahajú kontajner opačnými smermi, každý silou 200 N. Potom sa jednému pridá pomocník so silou 100 N. Sleduj šípky síl.',ss:'Kontajner 200 kg bez trenia, dve opačné sily po 200 N a potom tretia sila 100 N. Určíme výslednicu a zrýchlenie.'},
+  scene:()=>SceneTug(),
+  predict:{q:{maly:'Dvaja roboti ťahajú debnu – jeden doľava, druhý doprava, oba rovnako silno. Debna stojí. Pôsobí na ňu vôbec nejaká sila?',kadet:'Dvaja astronauti ťahajú kontajner za laná opačnými smermi, každý silou 200 N. Kontajner sa nehýbe. Čo platí?',ss:'Kontajner (200 kg, bez trenia) ťahajú opačne dve sily po 200 N. Potom sa vpravo pridá tretia sila 100 N. Ako sa bude kontajner pohybovať?'},
+   opts:{maly:[['Nie, žiadna',0],['Áno, dve sily, ktoré sa navzájom vyrovnávajú',1],['Iba jedna – od silnejšieho robota',0]],kadet:[['Nepôsobí naň žiadna sila',0],['Pôsobia naň dve sily, ich výslednica je nulová',1],['Pôsobí naň sila 400 N, preto stojí',0],['Kontajner je príliš ťažký, aby sa pohol',0]],ss:[['Rovnomerne zrýchlene doprava, a = 0,5 m/s²',1],['Rovnomerne, rýchlosťou 0,5 m/s',0],['Zrýchlene, a = 2,5 m/s² (500 N / 200 kg)',0],['Zostane stáť, prevaha je malá',0]]}},
+  explain:{maly:['Na debnu pôsobili dve sily – jedna doľava, druhá doprava. Boli rovnako veľké, a tak sa vyrovnali. Debna stála, hoci ju obaja ťahali.','Keď prišiel pomocník, ťahanie doprava bolo silnejšie. Debna sa preto pohla doprava.'],
+   kadet:['Sily opačného smeru sa odčítajú. Keď sú rovnako veľké, výslednica je nulová a teleso je v rovnováhe – stojí alebo sa pohybuje rovnomerne.','Po príchode pomocníka: vpravo 300 N, vľavo 200 N. Výslednica je 100 N doprava a kontajner sa začne rozbiehať. Rovnováhu nájdeš aj pri knihe na stole: tiažovú silu vyrovnáva sila, ktorou stôl tlačí knihu nahor.'],
+   ss:['Fáza 1: F = 200 N − 200 N = 0 ⇒ a = 0. Teleso je v rovnováhe, nie „bez síl“.','Fáza 2: F = 300 N − 200 N = 100 N, a = F/m = 100/200 = 0,5 m/s². O pohybe rozhoduje výslednica (vektorový súčet), nie najväčšia ani naposledy pridaná sila.']},
+  myth:{t:'Mýtus: „Keď sa vec nehýbe, nepôsobí na ňu žiadna sila.“',d:{maly:'Aj stojaca debna môže byť ťahaná z dvoch strán. Sily sa len navzájom vyrovnávajú.',kadet:'Na stojace veci zvyčajne pôsobí viac síl naraz – len sa rušia. Kniha na stole je priťahovaná Zemou, a predsa nepadá, lebo ju stôl tlačí nahor.',ss:'Výskumy opisujú aj ďalšie omyly: „pohyb určuje najväčšia sila“ a „pohyb určuje sila, ktorá zapôsobila posledná“. Rozhoduje vždy súčet všetkých síl.'}},
+  fact:'Most stojí, hoci po ňom jazdia tony áut. Podpery ho tlačia nahor presne takou silou, akou ho autá a jeho vlastná tiaž tlačia nadol.',
+  checks:{
+   maly:[()=>({q:'Pri preťahovaní lanom sa lano nehýbe. Čo to znamená?',opts:[['Obe družstvá ťahajú rovnako silno',1],['Nikto neťahá',0],['Lano je zaseknuté',0]],why:'Ťahajú obe strany, ale rovnako silno, a tak sa sily vyrovnajú.'}),
+         ()=>({q:'Lampa visí zo stropu a nepadá. Pôsobí na ňu nejaká sila?',opts:[['Áno: Zem ju ťahá dole a šnúra hore',1],['Nie, žiadna',0],['Iba šnúra',0]],why:'Zem lampu stále priťahuje. Šnúra ju drží rovnako silno nahor, preto lampa visí na mieste.'}),
+         ()=>({q:'Na jednej strane lana ťahajú dve deti, na druhej tri rovnako silné deti. Kto vyhrá?',opts:[['Strana s tromi deťmi',1],['Strana s dvoma deťmi',0],['Bude remíza',0]],why:'Tri deti spolu ťahajú silnejšie ako dve.'})],
+   kadet:[()=>({q:'Kniha leží na stole a nehýbe sa. Ktoré sily na ňu pôsobia?',opts:[['Tiažová sila nadol a sila stola nahor, rovnako veľké',1],['Žiadne, lebo sa nehýbe',0],['Iba tiažová sila',0]],why:'Kniha je v rovnováhe: tiažovú silu vyrovnáva sila, ktorou na ňu tlačí stôl.'}),
+         ()=>{const a=ri(3,25)*10,b=ri(3,25)*10;return{q:`Dvaja roboti tlačia debnu rovnakým smerom silami ${a} N a ${b} N. Aká je výslednica?`,opts:[[`${a+b} N`,1],[`${Math.abs(a-b)||10} N`,0],['0 N',0],[`${Math.max(a,b)} N`,0]],why:'Sily rovnakého smeru sa sčítajú.'}},
+         ()=>{let a=ri(3,25)*10,b=ri(3,25)*10;if(a===b)b+=30;const d=Math.abs(a-b),dir=a>b?'doľava':'doprava',ndir=a>b?'doprava':'doľava';return{q:`Na kontajner pôsobí sila ${a} N doľava a sila ${b} N doprava. Aká je výslednica?`,opts:[[`${d} N ${dir}`,1],[`${d} N ${ndir}`,0],[`${a+b} N ${dir}`,0],['0 N, kontajner stojí',0]],why:'Sily opačného smeru sa odčítajú; výslednica má smer väčšej sily.'}}],
+   ss:[()=>({q:'Výťah ide nahor stálou rýchlosťou. Porovnaj ťahovú silu lana a tiažovú silu kabíny.',opts:[['Sú rovnako veľké',1],['Ťahová sila je väčšia, inak by výťah nešiel hore',0],['Tiažová sila je väčšia',0]],why:'Stála rýchlosť ⇒ a = 0 ⇒ výslednica je nulová. Väčšia ťahová sila je potrebná len pri rozbiehaní.'}),
+       ()=>{const t=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17]]),k=ri(1,5)*10;return{q:`Na teleso pôsobia dve navzájom kolmé sily ${t[0]*k} N a ${t[1]*k} N. Aká veľká je výslednica?`,opts:[[`${t[2]*k} N`,1],[`${(t[0]+t[1])*k} N`,0],[`${(t[1]-t[0])*k} N`,0],[`${(t[0]+t[1])*k/2} N`,0]],why:`F = √(F₁² + F₂²) = √(${t[0]*k}² + ${t[1]*k}²) = ${t[2]*k} N.`}},
+       ()=>({q:'Lietadlo letí vodorovne stálou rýchlosťou. Čo platí o silách naň?',opts:[['Ťah motorov = odpor vzduchu a vztlak = tiažová sila',1],['Ťah motorov je väčší ako odpor vzduchu',0],['Vztlak je väčší ako tiažová sila',0]],why:'Rovnomerný priamočiary pohyb znamená rovnováhu síl vo vodorovnom aj zvislom smere.'})]}},
+ {id:'m6',code:'M-06',title:{maly:'Ľad a betón',kadet:'Brzdy a podrážky',ss:'Trenie a brzdná dráha'},topic:{maly:'Čo veci brzdí',kadet:'Trecia sila',ss:'Trecia sila · s = v²/(2μg)'},
+  emb:`<svg viewBox="0 0 240 120"><rect width="240" height="120" fill="#22324A"/><rect y="34" width="240" height="5" fill="#CFEAF7"/><g class="a-ice"><rect x="6" y="18" width="16" height="16" rx="2" fill="#D9822B" stroke="#6B3A12" stroke-width="1.5"/></g><rect y="74" width="240" height="5" fill="#8E8A82"/><g class="a-stop"><rect x="6" y="58" width="16" height="16" rx="2" fill="#D9822B" stroke="#6B3A12" stroke-width="1.5"/></g><rect y="114" width="240" height="5" fill="#8E8A82"/><g class="a-stop"><rect x="6" y="98" width="16" height="16" rx="2" fill="#D9822B" stroke="#6B3A12" stroke-width="1.5"/><rect x="6" y="82" width="16" height="16" rx="2" fill="#D9822B" stroke="#6B3A12" stroke-width="1.5"/></g><text x="214" y="14" fill="#CFEAF7" font-size="9" font-family="monospace">ĽAD</text><text x="200" y="68" fill="#C9C4BA" font-size="9" font-family="monospace">BETÓN</text></svg>`,
+  intro:{maly:'V sklade na Zemi štuchneme tri debny rovnako silno: jednu na ľade a dve na betóne. Kde sa dokĺžu najďalej?',kadet:'V pozemskom sklade dostanú debny rovnakú rýchlosť 5 m/s. Jedna kĺže po ľade, jedna po betóne a po betóne aj dvojitá (16 kg). Ktorá zastaví prvá?',ss:'Tri telesá s v₀ = 5 m/s s rôznym súčiniteľom trenia a rôznou hmotnosťou. Overíme, od čoho závisí brzdná dráha.'},
+  scene:()=>SceneFriction(),
+  predict:{q:{maly:'Debny dostanú rovnaký štuchanec. Kde sa debna dokĺže najďalej?',kadet:'Po betóne sa kĺže jedna debna (8 kg) a dve debny na sebe (16 kg), obe s počiatočnou rýchlosťou 5 m/s. Ktorá sa dokĺže ďalej?',ss:'Po betóne (μ = 0,4) sa kĺžu telesá 8 kg a 16 kg s rovnakou počiatočnou rýchlosťou 5 m/s. Porovnaj ich brzdné dráhy.'},
+   opts:{maly:[['Na ľade',1],['Na betóne',0],['Všade rovnako ďaleko',0]],kadet:[['Jedna debna, je ľahšia',0],['Dve debny, majú väčšiu zotrvačnosť',0],['Dokĺžu sa rovnako ďaleko',1],['Dve debny sa vôbec nepohnú',0]],ss:[['Rovnaké: trecia sila aj hmotnosť sú dvojnásobné, spomalenie a = μg je rovnaké',1],['Ťažšie teleso má kratšiu dráhu, pôsobí naň dvojnásobná trecia sila',0],['Ťažšie teleso má dlhšiu dráhu, má väčšiu zotrvačnosť',0],['Ťažšie teleso má polovičnú dráhu',0]]}},
+  explain:{maly:['Debnu brzdí trenie – podlaha sa o ňu „drhne“. Drsný betón brzdí veľa, hladký ľad málo. Preto sa na ľade dokĺzala najďalej.','Dve debny na sebe zastavili na tom istom mieste ako jedna. Sú ťažšie, ale aj podlaha ich brzdí viac.'],
+   kadet:['Trecia sila závisí od povrchov (súčiniteľ trenia μ) a od toho, akou silou teleso tlačí na podložku: F_t = μ · F_n. Na ľade je μ malé, preto debna kĺzala ďaleko.','Dvojitá debna má dvojnásobnú treciu silu, ale aj dvojnásobnú hmotnosť, takže je ťažšie ju zabrzdiť. Výsledok: zastavia na rovnakom mieste.'],
+   ss:['Spomalenie: a = F_t/m = μ·m·g/m = μ·g – hmotnosť sa krátí. Na betóne a = 0,4 · 9,81 ≈ 3,92 m/s², na ľade ≈ 0,98 m/s².','Brzdná dráha s = v₀²/(2μg): betón 25/(2·0,4·9,81) ≈ 3,19 m, ľad ≈ 12,74 m. Dráha rastie s druhou mocninou rýchlosti – dvojnásobná rýchlosť znamená štvornásobnú brzdnú dráhu.']},
+  myth:{t:'Mýtus: „Trenie len škodí – a ťažké veci sa dokĺžu ďalej.“',d:{maly:'Bez trenia by sme sa šmýkali ako na ľade a nevedeli by sme ani chodiť.',kadet:'Trenie nám pomáha chodiť, brzdiť aj držať veci v ruke. A hmotnosť dráhu pri kĺzaní na rovnakom povrchu nemení.',ss:'Pri chôdzi pôsobí trecia sila podložky na podrážku smerom dopredu – práve ona nás poháňa. Na dokonale hladkej podlahe by sme sa nepohli z miesta.'}},
+  fact:'Pri dvojnásobnej rýchlosti je brzdná dráha auta štvornásobná. Preto sa v obci jazdí pomalšie: zníženie rýchlosti zo 70 na 50 km/h skráti brzdnú dráhu takmer o polovicu.',
+  checks:{
+   maly:[()=>({q:'Prečo v zime sypeme zľadovatené chodníky pieskom?',opts:[['Piesok zväčší trenie, takže sa nešmýkame',1],['Piesok roztopí ľad',0],['Aby bol chodník krajší',0]],why:'Zrnká piesku urobia hladký ľad drsnejším. Trenie je väčšie a nešmýkame sa.'}),
+         ()=>({q:'Kde sa ti debna potiahne ľahšie?',opts:[['Po hladkej podlahe',1],['Po hrubom koberci',0],['Všade rovnako',0]],why:'Hladká podlaha brzdí debnu menej ako hrubý koberec.'}),
+         ()=>({q:'Je trenie vždy zlé?',opts:[['Nie – bez neho by sme sa šmýkali a nevedeli chodiť',1],['Áno, vždy iba brzdí',0],['Trenie neexistuje',0]],why:'Trenie nám pomáha chodiť, bicyklu brzdiť a ceruzke písať.'})],
+   kadet:[()=>({q:'Od čoho závisí trecia sila medzi debnou a podlahou?',opts:[['Od drsnosti povrchov a od prítlačnej sily',1],['Iba od rýchlosti debny',0],['Iba od veľkosti plochy, ktorou sa debna dotýka podlahy',0]],why:'F_t = μ · F_n: μ vyjadruje vlastnosti povrchov, F_n silu, ktorou teleso tlačí na podložku.'}),
+         ()=>({q:'Debnu ťaháš po podlahe stálou rýchlosťou. Aká je ťažná sila v porovnaní s trecou silou?',opts:[['Rovnako veľká',1],['Väčšia',0],['Menšia',0]],why:'Pri rovnomernom pohybe je výslednica nulová: ťažná sila presne vyrovnáva treciu.'}),
+         ()=>({q:'Na debnu položíš ďalšiu rovnakú debnu. Ako sa zmení trecia sila pri posúvaní?',opts:[['Zdvojnásobí sa',1],['Nezmení sa',0],['Zmenší sa na polovicu',0]],why:'Dvojnásobná prítlačná sila znamená dvojnásobnú treciu silu.'})],
+   ss:[()=>({q:'Auto brzdí so zablokovanými kolesami. Ako sa zmení brzdná dráha, ak išlo dvojnásobnou rýchlosťou?',opts:[['Zväčší sa štvornásobne',1],['Zväčší sa dvojnásobne',0],['Nezmení sa',0]],why:'s = v²/(2μg): dráha závisí od druhej mocniny rýchlosti.'}),
+       ()=>({q:'Prečo majú plne naložené a prázdne auto (rovnaké pneumatiky aj cesta) pri šmyku približne rovnakú brzdnú dráhu?',opts:[['Trecia sila aj hmotnosť rastú rovnako, spomalenie a = μg sa nemení',1],['Naložené auto má väčšiu tiaž, zastaví skôr',0],['Naložené auto má väčšiu zotrvačnosť, dokĺže sa ďalej',0]],why:'a = μ·m·g / m = μ·g. (V skutočnosti sa brzdná dráha mení cez brzdy a pneumatiky, nie cez samotnú hmotnosť.)'}),
+       ()=>{const F=ri(3,15)*10;return{q:`Debnu ťaháš vodorovnou silou ${F} N, ale nepohne sa. Aká veľká je trecia sila?`,opts:[[`${F} N, rovnako ako ťažná sila`,1],['μ · m · g, vždy rovnaká',0],['0 N, debna sa predsa nehýbe',0]],why:'Ide o trenie v pokoji: prispôsobí sa ťažnej sile až po svoju maximálnu hodnotu. Debna je v rovnováhe.'}}]}}
+);
+Object.assign(MISSIONS[0],{calc:{kadet:'pohyb',ss:'newton2'},labExp:1,labTip:'Prepni na Klzisko a potom na Vesmír a hoď debnu. Kde zastaví?'});
+Object.assign(MISSIONS[1],{calc:{kadet:'tiaz',ss:'pad'},labExp:0,labTip:'Pusti pierko a kladivo na Zemi, potom prepni na Mesiac.'});
+Object.assign(MISSIONS[2],{calc:{kadet:'newton2',ss:'hybnost'},labExp:2,labTip:'Vo vesmíre hoď loptu do ťažkej debny. Kto sa pohne viac?'});
+Object.assign(MISSIONS[3],{calc:{kadet:'newton2',ss:'newton2'},labExp:2,labTip:'V pokuse Biliard vo vesmíre sleduj, ako málo sa ťažká debna rozbehne po náraze ľahkej lopty.'});
+Object.assign(MISSIONS[4],{calc:{kadet:'vysl',ss:'vysl'},labExp:4,labTip:'Pozri sa na stojacu debnu so zapnutými šípkami síl. Aj na ňu pôsobia sily – len sa vyrovnávajú.'});
+Object.assign(MISSIONS[5],{calc:{kadet:'trenie',ss:'brzda'},labExp:1,labTip:'Prepínaj medzi Klziskom a Zemou. Kadeti a Inžinieri môžu meniť aj μ posuvníkom.'});
+
+/* ---------- calculation bank ---------- */
+const plur=d=>d===0?'celé číslo':d===1?'1 desatinné miesto':d+' desatinné miesta';
+const CALC={
+ pohyb:{name:'Rýchlosť a dráha',lv:['kadet','ss'],gen(lv){
+  if(lv==='ss'&&Math.random()<.5){const s1=ri(2,9)*10,v1=ri(6,16)*5,s2=ri(2,9)*10,v2=ri(6,16)*5;const t1=s1/v1,t2=s2/v2,vp=(s1+s2)/(t1+t2);return{q:`Nákladné auto prešlo prvých ${s1} km rýchlosťou ${v1} km/h a ďalších ${s2} km rýchlosťou ${v2} km/h. Aká bola jeho priemerná rýchlosť na celej trase?`,ans:vp,unit:'km/h',dec:1,hint:'vₚ = s_celk / t_celk. Pozor, nie je to priemer dvoch rýchlostí!',steps:[`t₁ = s₁ / v₁ = ${s1} / ${v1} ≈ ${fmt(t1,3)} h`,`t₂ = s₂ / v₂ = ${s2} / ${v2} ≈ ${fmt(t2,3)} h`,`vₚ = (s₁ + s₂) / (t₁ + t₂) = ${s1+s2} / ${fmt(t1+t2,3)} ≈ ${fmt(vp,1)} km/h`]}}
+  const ty=pick(['v','s','t','kmh']);
+  if(ty==='v'){const s=ri(3,40)*5,t=ri(4,25),v=s/t;return{q:`Nakladací robot prešiel po stanici dráhu ${s} m za ${t} s. Akou priemernou rýchlosťou sa pohyboval?`,ans:v,unit:'m/s',dec:2,hint:'v = s / t',steps:['v = s / t',`v = ${s} m / ${t} s ≈ ${fmt(v,2)} m/s`]}}
+  if(ty==='s'){const v=ri(2,15),t=ri(5,60);return{q:`Kontajner sa vo vesmíre pohybuje stálou rýchlosťou ${v} m/s. Akú dráhu prejde za ${t} s?`,ans:v*t,unit:'m',dec:0,hint:'s = v · t',steps:['s = v · t',`s = ${v} m/s · ${t} s = ${v*t} m`]}}
+  if(ty==='t'){const v=ri(2,8),s=v*ri(5,30);return{q:`Kontajner letí stálou rýchlosťou ${v} m/s. Za aký čas preletí ${s} m dlhú halu?`,ans:s/v,unit:'s',dec:0,hint:'t = s / v',steps:['t = s / v',`t = ${s} m / ${v} m/s = ${s/v} s`]}}
+  const kmh=ri(6,26)*5,ms=kmh/3.6;return{q:`Auto ide rýchlosťou ${kmh} km/h. Koľko je to v m/s?`,ans:ms,unit:'m/s',dec:1,hint:'1 m/s = 3,6 km/h, teda v[m/s] = v[km/h] / 3,6',steps:[`v = ${kmh} km/h : 3,6`,`v ≈ ${fmt(ms,1)} m/s`]}}},
+ tiaz:{name:'Tiažová sila',lv:['kadet','ss'],gen(lv){const ss=lv==='ss',g=ss?9.81:10,gm=ss?1.62:1.6,gs=ss?'9,81':'10',gms=ss?'1,62':'1,6';const ty=pick(['zem','mesiac','hmot']);
+  if(ty==='zem'){const m=ri(2,60)*5,F=m*g;return{q:`Kontajner má hmotnosť ${m} kg. Akou tiažovou silou naň pôsobí Zem? (g = ${gs} N/kg)`,ans:F,unit:'N',dec:0,hint:'F_g = m · g',steps:['F_g = m · g',`F_g = ${m} kg · ${gs} N/kg ${ss?'≈':'='} ${fmt(F,ss?1:0)} N`]}}
+  if(ty==='mesiac'){const m=ri(50,120),Fz=m*g,Fm=m*gm;return{q:`Astronaut so skafandrom má hmotnosť ${m} kg. O koľko newtonov menšou tiažovou silou naň pôsobí Mesiac ako Zem? (g_Z = ${gs} N/kg, g_M = ${gms} N/kg)`,ans:Fz-Fm,unit:'N',dec:0,hint:'Vypočítaj F_g na Zemi aj na Mesiaci (F_g = m · g) a odčítaj ich.',steps:[`F_Z = ${m} · ${gs} = ${fmt(Fz,1)} N`,`F_M = ${m} · ${gms} = ${fmt(Fm,1)} N`,`ΔF = ${fmt(Fz,1)} − ${fmt(Fm,1)} ≈ ${fmt(Fz-Fm,0)} N`,`Hmotnosť sa nezmenila – stále je ${m} kg.`]}}
+  const m=ri(4,40)*5,Fm=m*gm;return{q:`Silomer na Mesiaci ukazuje, že na prístroj pôsobí tiažová sila ${fmt(Fm,1)} N. Aká je hmotnosť prístroja? (g_M = ${gms} N/kg)`,ans:m,unit:'kg',dec:0,hint:'m = F_g / g',steps:['m = F_g / g',`m = ${fmt(Fm,1)} N / ${gms} N/kg = ${m} kg`]}}},
+ vysl:{name:'Skladanie síl',lv:['kadet','ss'],gen(lv){const ty=pick(lv==='ss'?['kolmo','kolmo','a','tim']:['rovnako','opacne','tim']);
+  if(ty==='rovnako'){const a=ri(3,30)*10,b=ri(3,30)*10;return{q:`Dvaja roboti tlačia debnu rovnakým smerom silami ${a} N a ${b} N. Aká veľká je výslednica?`,ans:a+b,unit:'N',dec:0,hint:'Sily rovnakého smeru sa sčítajú: F = F₁ + F₂',steps:['F = F₁ + F₂',`F = ${a} N + ${b} N = ${a+b} N`]}}
+  if(ty==='opacne'){let a=ri(3,30)*10,b=ri(3,30)*10;if(a===b)b+=20;return{q:`Na debnu pôsobí sila ${a} N doľava a sila ${b} N doprava. Aká veľká je výslednica?`,ans:Math.abs(a-b),unit:'N',dec:0,hint:'Sily opačného smeru sa odčítajú (väčšia − menšia). Výslednica má smer väčšej sily.',steps:[`F = ${Math.max(a,b)} N − ${Math.min(a,b)} N = ${Math.abs(a-b)} N`,`Smer: ${a>b?'doľava':'doprava'}`]}}
+  if(ty==='tim'){const nl=ri(2,4),nr=ri(2,4),fl=ri(8,16)*10,fr=ri(8,16)*10,A=nl*fl,B=nr*fr;if(A===B)return CALC.vysl.gen(lv);return{q:`Preťahovanie lanom: vľavo ťahajú ${nl} roboti, každý silou ${fl} N, vpravo ${nr} roboti, každý silou ${fr} N. Aká veľká je výslednica síl pôsobiacich na lano?`,ans:Math.abs(A-B),unit:'N',dec:0,hint:'Sčítaj sily každého družstva a potom ich od seba odčítaj.',steps:[`Vľavo: ${nl} · ${fl} = ${A} N`,`Vpravo: ${nr} · ${fr} = ${B} N`,`F = ${Math.max(A,B)} − ${Math.min(A,B)} = ${Math.abs(A-B)} N, smer ${A>B?'doľava':'doprava'}`]}}
+  if(ty==='kolmo'){const a=ri(4,30)*5,b=ri(4,30)*5,F=Math.hypot(a,b);return{q:`Dva motory pôsobia na kontajner navzájom kolmými silami ${a} N a ${b} N. Aká veľká je výslednica?`,ans:F,unit:'N',dec:1,hint:'Kolmé sily: F = √(F₁² + F₂²) (Pytagorova veta)',steps:['F = √(F₁² + F₂²)',`F = √(${a}² + ${b}²) = √${a*a+b*b} ≈ ${fmt(F,1)} N`]}}
+  const m=ri(4,30)*10,F1=ri(10,60)*10,F2=ri(5,F1/10-1)*10,a=(F1-F2)/m;return{q:`Na kontajner s hmotnosťou ${m} kg (bez trenia) pôsobia dve opačné sily: ${F1} N dopredu a ${F2} N dozadu. Aké zrýchlenie kontajner získa?`,ans:a,unit:'m/s²',dec:2,hint:'Najprv výslednica F = F₁ − F₂, potom a = F / m.',steps:[`F = ${F1} − ${F2} = ${F1-F2} N`,`a = F / m = ${F1-F2} / ${m} ≈ ${fmt(a,2)} m/s²`]}}},
+ trenie:{name:'Trenie',lv:['kadet','ss'],gen(lv){const surf=pick([['drevo po dreve',.3],['oceľ po ľade',.02],['guma po betóne',.7],['drevo po betóne',.4]]);const mu=surf[1];
+  if(lv==='kadet'){const ty=pick(['ft','tah','mu']);const m=ri(2,30)*5,Fn=m*10,Ft=mu*Fn;
+   if(ty==='ft')return{q:`Debna s hmotnosťou ${m} kg leží na vodorovnej podlahe (${surf[0]}, μ = ${fmt(mu,2)}). Aká veľká je trecia sila pri jej posúvaní? (g = 10 N/kg)`,ans:Ft,unit:'N',dec:1,hint:'F_t = μ · F_n; na vodorovnej podlahe F_n = m · g',steps:[`F_n = m · g = ${m} · 10 = ${Fn} N`,`F_t = μ · F_n = ${fmt(mu,2)} · ${Fn} = ${fmt(Ft,1)} N`]};
+   if(ty==='tah')return{q:`Akou vodorovnou silou musíš ťahať debnu s hmotnosťou ${m} kg (${surf[0]}, μ = ${fmt(mu,2)}), aby sa pohybovala rovnomerne? (g = 10 N/kg)`,ans:Ft,unit:'N',dec:1,hint:'Pri rovnomernom pohybe sa ťažná sila rovná trecej: F = μ · m · g',steps:[`F_n = ${m} · 10 = ${Fn} N`,`F = F_t = ${fmt(mu,2)} · ${Fn} = ${fmt(Ft,1)} N`,'Ťažná sila vyrovnáva treciu, výslednica je nulová.']};
+   const mu2=pick([.2,.25,.3,.4,.5]),m2=ri(2,20)*5,F2=mu2*m2*10;return{q:`Debnu s hmotnosťou ${m2} kg ťaháš po podlahe stálou rýchlosťou. Silomer ukazuje ${fmt(F2,1)} N. Aký je súčiniteľ šmykového trenia? (g = 10 N/kg)`,ans:mu2,unit:'',dec:2,hint:'μ = F_t / F_n, kde F_n = m · g',steps:[`F_n = ${m2} · 10 = ${m2*10} N`,`μ = ${fmt(F2,1)} / ${m2*10} = ${fmt(mu2,2)}`]}}
+  const g=9.81,ty=pick(['a','tah','mu']),m=ri(4,30)*5,Ft=mu*m*g;
+  if(ty==='a'){const F=Math.ceil(Ft/10)*10+ri(2,20)*10,a=(F-Ft)/m;return{q:`Kontajner s hmotnosťou ${m} kg ťaháme po vodorovnej podlahe (${surf[0]}, μ = ${fmt(mu,2)}) vodorovnou silou ${F} N. Aké zrýchlenie získa? (g = 9,81 m/s²)`,ans:a,unit:'m/s²',dec:2,hint:'a = (F − F_t) / m, kde F_t = μ · m · g',steps:[`F_t = μ · m · g = ${fmt(mu,2)} · ${m} · 9,81 ≈ ${fmt(Ft,1)} N`,`F_výsl = ${F} − ${fmt(Ft,1)} ≈ ${fmt(F-Ft,1)} N`,`a = F_výsl / m ≈ ${fmt(a,2)} m/s²`]}}
+  if(ty==='tah'){const a=pick([.5,1,1.5,2]),F=m*a+Ft;return{q:`Akou vodorovnou silou treba ťahať kontajner s hmotnosťou ${m} kg (${surf[0]}, μ = ${fmt(mu,2)}), aby zrýchľoval so zrýchlením ${fmt(a,1)} m/s²? (g = 9,81 m/s²)`,ans:F,unit:'N',dec:1,hint:'F − F_t = m · a ⇒ F = m · a + μ · m · g',steps:[`F_t = ${fmt(mu,2)} · ${m} · 9,81 ≈ ${fmt(Ft,1)} N`,`m · a = ${m} · ${fmt(a,1)} = ${fmt(m*a,1)} N`,`F = ${fmt(m*a,1)} + ${fmt(Ft,1)} ≈ ${fmt(F,1)} N`]}}
+  const mu3=pick([.1,.2,.3,.4,.5]),v0=ri(2,8),sd=+(v0*v0/(2*mu3*g)).toFixed(2),mm=v0*v0/(2*g*sd);return{q:`Debna sa po podlahe rozbehla rýchlosťou ${v0} m/s a po dráhe ${fmt(sd,2)} m zastavila. Aký je súčiniteľ šmykového trenia? (g = 9,81 m/s²)`,ans:mm,unit:'',dec:2,hint:'s = v₀² / (2μg) ⇒ μ = v₀² / (2 · g · s)',steps:['μ = v₀² / (2 · g · s)',`μ = ${v0*v0} / (2 · 9,81 · ${fmt(sd,2)}) ≈ ${fmt(mm,2)}`]}}},
+ newton2:{name:'2. Newtonov zákon',lv:['kadet','ss'],gen(lv){
+  if(lv==='kadet'){const ty=pick(['a','F','m']),m=ri(2,40)*5,a=pick([.5,1,1.5,2,2.5,3,4]),F=m*a;
+   if(ty==='a')return{q:`Motor pôsobí na kontajner s hmotnosťou ${m} kg silou ${fmt(F,0)} N (bez trenia). Aké zrýchlenie mu udelí?`,ans:a,unit:'m/s²',dec:1,hint:'a = F / m',steps:['a = F / m',`a = ${fmt(F,0)} N / ${m} kg = ${fmt(a,1)} m/s²`]};
+   if(ty==='F')return{q:`Akou silou musí motor pôsobiť na kontajner s hmotnosťou ${m} kg, aby získal zrýchlenie ${fmt(a,1)} m/s²? (bez trenia)`,ans:F,unit:'N',dec:0,hint:'F = m · a',steps:['F = m · a',`F = ${m} kg · ${fmt(a,1)} m/s² = ${fmt(F,0)} N`]};
+   return{q:`Sila ${fmt(F,0)} N udelí neznámemu kontajneru zrýchlenie ${fmt(a,1)} m/s². Akú hmotnosť má kontajner?`,ans:m,unit:'kg',dec:0,hint:'m = F / a',steps:['m = F / a',`m = ${fmt(F,0)} N / ${fmt(a,1)} m/s² = ${m} kg`]}}
+  const ty=pick(['v','t','s','m']),m=ri(4,40)*25,F=ri(2,30)*50,a=F/m;
+  if(ty==='v'){const t=ri(2,12),v=a*t;return{q:`Na stojaci kontajner s hmotnosťou ${m} kg pôsobí motor stálou silou ${F} N počas ${t} s (bez trenia). Akú rýchlosť získa?`,ans:v,unit:'m/s',dec:2,hint:'a = F / m, potom v = a · t',steps:[`a = F / m = ${F} / ${m} ≈ ${fmt(a,3)} m/s²`,`v = a · t = ${fmt(a,3)} · ${t} ≈ ${fmt(v,2)} m/s`]}}
+  if(ty==='t'){const v=ri(2,10),t=v/a;return{q:`Za aký čas rozbehne sila ${F} N stojaci kontajner s hmotnosťou ${m} kg na rýchlosť ${v} m/s? (bez trenia)`,ans:t,unit:'s',dec:1,hint:'a = F / m, potom t = v / a',steps:[`a = ${F} / ${m} ≈ ${fmt(a,3)} m/s²`,`t = v / a = ${v} / ${fmt(a,3)} ≈ ${fmt(t,1)} s`]}}
+  if(ty==='s'){const t=ri(2,10),s=a*t*t/2;return{q:`Sila ${F} N pôsobí na stojaci kontajner s hmotnosťou ${m} kg (bez trenia). Akú dráhu prejde za prvých ${t} s?`,ans:s,unit:'m',dec:1,hint:'a = F / m, potom s = ½ · a · t²',steps:[`a = ${F} / ${m} ≈ ${fmt(a,3)} m/s²`,`s = ½ · a · t² = 0,5 · ${fmt(a,3)} · ${t}² ≈ ${fmt(s,1)} m`]}}
+  const t=ri(2,10),vd=+(a*t).toFixed(2),mm=F*t/vd;return{q:`Motor pôsobil silou ${F} N na stojaci kontajner ${t} s a kontajner získal rýchlosť ${fmt(vd,2)} m/s (bez trenia). Aká je hmotnosť kontajnera?`,ans:mm,unit:'kg',dec:0,hint:'a = v / t, potom m = F / a',steps:[`a = v / t = ${fmt(vd,2)} / ${t} ≈ ${fmt(vd/t,3)} m/s²`,`m = F / a ≈ ${F} / ${fmt(vd/t,3)} ≈ ${fmt(mm,0)} kg`]}}},
+ pad:{name:'Voľný pád',lv:['kadet','ss'],gen(lv){
+  if(lv==='kadet'){if(Math.random()<.5){const t=ri(2,10)/2,v=10*t;return{q:`Kameň padá voľným pádom ${fmt(t,1)} s. Akú rýchlosť má na konci? (g = 10 m/s², odpor vzduchu zanedbaj)`,ans:v,unit:'m/s',dec:0,hint:'v = g · t',steps:['v = g · t',`v = 10 · ${fmt(t,1)} = ${fmt(v,0)} m/s`]}}
+   const t=ri(1,6),v=1.6*t;return{q:`Na Mesiaci padá kladivo ${t} s. Akú rýchlosť má na konci? (g_M = 1,6 m/s²)`,ans:v,unit:'m/s',dec:1,hint:'v = g · t',steps:['v = g · t',`v = 1,6 · ${t} = ${fmt(v,1)} m/s`]}}
+  const ty=pick(['t','v','tM','h']),g=9.81;
+  if(ty==='t'){const h=ri(2,60),t=Math.sqrt(2*h/g);return{q:`Za aký čas dopadne kameň pustený z výšky ${h} m? (g = 9,81 m/s², odpor vzduchu zanedbaj)`,ans:t,unit:'s',dec:2,hint:'h = ½ · g · t² ⇒ t = √(2h / g)',steps:['t = √(2h / g)',`t = √(2 · ${h} / 9,81) ≈ ${fmt(t,2)} s`]}}
+  if(ty==='v'){const h=ri(2,60),v=Math.sqrt(2*g*h);return{q:`Akou rýchlosťou dopadne kameň pustený z výšky ${h} m? (g = 9,81 m/s², odpor vzduchu zanedbaj)`,ans:v,unit:'m/s',dec:1,hint:'v = √(2gh), alebo najprv t = √(2h/g) a potom v = g · t',steps:['v = √(2 · g · h)',`v = √(2 · 9,81 · ${h}) ≈ ${fmt(v,1)} m/s`]}}
+  if(ty==='tM'){const h=ri(2,20)/2,t=Math.sqrt(2*h/1.62);return{q:`Astronaut na Mesiaci pustí kladivo z výšky ${fmt(h,1)} m. Za aký čas dopadne? (g_M = 1,62 m/s²)`,ans:t,unit:'s',dec:2,hint:'t = √(2h / g)',steps:['t = √(2h / g)',`t = √(2 · ${fmt(h,1)} / 1,62) ≈ ${fmt(t,2)} s`]}}
+  const t=ri(10,40)/10,h=g*t*t/2;return{q:`Kameň hodený do priepasti dopadol na dno za ${fmt(t,1)} s. Aká je hĺbka priepasti? (g = 9,81 m/s², odpor vzduchu a čas šírenia zvuku zanedbaj)`,ans:h,unit:'m',dec:1,hint:'h = ½ · g · t²',steps:['h = ½ · g · t²',`h = 0,5 · 9,81 · ${fmt(t,1)}² ≈ ${fmt(h,1)} m`]}}},
+ hybnost:{name:'Hybnosť',lv:['ss'],gen(){const ty=pick(['p','recoil','inel']);
+  if(ty==='p'){const o=pick([['futbalová lopta',.45],['hokejový puk',.17],['tenisová loptička',.058]]),v=ri(5,40);return{q:`Aká je hybnosť, ak ${o[0]} (${fmt(o[1],3)} kg) letí rýchlosťou ${v} m/s?`,ans:o[1]*v,unit:'kg·m/s',dec:2,hint:'p = m · v',steps:['p = m · v',`p = ${fmt(o[1],3)} · ${v} ≈ ${fmt(o[1]*v,2)} kg·m/s`]}}
+  if(ty==='recoil'){const ma=ri(60,90),mc=ri(10,30)*10,vc=ri(2,9)/10,va=mc*vc/ma;return{q:`Astronaut (${ma} kg) sa odtlačí od stojaceho kontajnera (${mc} kg). Kontajner sa potom pohybuje rýchlosťou ${fmt(vc,1)} m/s. Akou rýchlosťou sa pohybuje astronaut?`,ans:va,unit:'m/s',dec:2,hint:'Zachovanie hybnosti: 0 = mₐ · vₐ + mₖ · vₖ',steps:['mₐ · vₐ = mₖ · vₖ (opačnými smermi)',`vₐ = ${mc} · ${fmt(vc,1)} / ${ma} ≈ ${fmt(va,2)} m/s`]}}
+  const m1=ri(1,6)*50,m2=ri(1,8)*50,v1=ri(2,12)/2,v=m1*v1/(m1+m2);return{q:`Kontajner (${m1} kg) letí rýchlosťou ${fmt(v1,1)} m/s a narazí do stojaceho kontajnera (${m2} kg). Pri zrážke sa spoja. Akou rýchlosťou sa pohybujú spolu?`,ans:v,unit:'m/s',dec:2,hint:'m₁ · v₁ = (m₁ + m₂) · v',steps:['m₁ · v₁ = (m₁ + m₂) · v',`v = ${m1} · ${fmt(v1,1)} / ${m1+m2} ≈ ${fmt(v,2)} m/s`]}}},
+ brzda:{name:'Brzdná dráha',lv:['ss'],gen(){const surf=pick([['suchý asfalt',.8],['mokrý asfalt',.5],['zasnežená cesta',.2],['ľad',.1]]),mu=surf[1],g=9.81,ty=pick(['s','t','v']);
+  if(ty==='v'){const s=ri(10,60),v=Math.sqrt(2*mu*g*s),kmh=v*3.6;return{q:`Po nehode namerali policajti brzdnú stopu dlhú ${s} m (${surf[0]}, μ = ${fmt(mu,1)}). Akou rýchlosťou išlo auto pred brzdením? Výsledok uveď v km/h.`,ans:kmh,unit:'km/h',dec:0,hint:'s = v² / (2μg) ⇒ v = √(2μgs), potom · 3,6',steps:['v = √(2 · μ · g · s)',`v = √(2 · ${fmt(mu,1)} · 9,81 · ${s}) ≈ ${fmt(v,2)} m/s`,`v ≈ ${fmt(v,2)} · 3,6 ≈ ${fmt(kmh,0)} km/h`]}}
+  const kmh=ri(6,26)*5,v=kmh/3.6;
+  if(ty==='s'){const s=v*v/(2*mu*g);return{q:`Auto ide rýchlosťou ${kmh} km/h a vodič prudko zabrzdí so zablokovanými kolesami (${surf[0]}, μ = ${fmt(mu,1)}). Aká je brzdná dráha?`,ans:s,unit:'m',dec:1,hint:'Preveď km/h na m/s, potom s = v² / (2μg)',steps:[`v = ${kmh} : 3,6 ≈ ${fmt(v,2)} m/s`,`a = μ · g = ${fmt(mu,1)} · 9,81 ≈ ${fmt(mu*g,2)} m/s²`,`s = v² / (2a) ≈ ${fmt(s,1)} m`]}}
+  const t=v/(mu*g);return{q:`Za aký čas zastaví auto idúce rýchlosťou ${kmh} km/h, ak brzdí so zablokovanými kolesami (${surf[0]}, μ = ${fmt(mu,1)})?`,ans:t,unit:'s',dec:1,hint:'a = μ · g, t = v / a (v v m/s!)',steps:[`v = ${kmh} : 3,6 ≈ ${fmt(v,2)} m/s`,`a = μ · g ≈ ${fmt(mu*g,2)} m/s²`,`t = v / a ≈ ${fmt(t,1)} s`]}}}
+};
+const CHEAT={kadet:[['v = s / t','rýchlosť = dráha / čas; 1 m/s = 3,6 km/h'],['F_g = m · g','tiažová sila; g ≈ 10 N/kg (Mesiac 1,6 N/kg)'],['F = F₁ + F₂','výslednica síl rovnakého smeru'],['F = F₁ − F₂','výslednica síl opačného smeru (väčšia − menšia)'],['F_t = μ · F_n','trecia sila; na vodorovnej podlahe F_n = m · g'],['a = F / m','zrýchlenie (2. Newtonov zákon)'],['v = g · t','rýchlosť pri voľnom páde z pokoja']],
+ ss:[['vₚ = s / t','priemerná rýchlosť (celková dráha / celkový čas)'],['F = m · a','2. Newtonov zákon (F je výslednica síl)'],['v = a · t,  s = ½ · a · t²','rovnomerne zrýchlený pohyb z pokoja'],['F = √(F₁² + F₂²)','výslednica dvoch kolmých síl'],['F_g = m · g','g = 9,81 m/s², Mesiac 1,62 m/s²'],['F_t = μ · m · g','trecia sila na vodorovnej podložke'],['t = √(2h / g),  v = √(2gh)','voľný pád z výšky h'],['p = m · v','hybnosť; v izolovanej sústave sa zachováva'],['s = v² / (2μg)','brzdná dráha pri šmyku']]};
+
+function numWidget(el,q,onDone,pfx){let tries=0,fin=false;
+  el.innerHTML=`<div class="say">${ava()}<div><p>${q.q}</p><button class="spk" data-a="spk">🔊 Prečítať</button></div></div>
+  <p class="tip">Výsledok zaokrúhli na ${plur(q.dec)}. Desatinnú čiarku môžeš napísať aj ako bodku.</p>
+  <div class="numrow"><label class="numin" for="${pfx}In"><input id="${pfx}In" inputmode="decimal" autocomplete="off" placeholder="výsledok" aria-label="Výsledok">${q.unit?`<span>${q.unit}</span>`:''}</label><button class="btn" data-a="chk">Skontrolovať</button><button class="btn sec" data-a="hint">Nápoveda</button></div><div data-a="fb" class="panel" style="margin-top:0"></div>`;
+  const inp=el.querySelector('input'),box=el.querySelector('.numin'),fb=el.querySelector('[data-a=fb]'),chk=el.querySelector('[data-a=chk]'),hb=el.querySelector('[data-a=hint]');
+  el.querySelector('[data-a=spk]').onclick=()=>speak(q.q);
+  const sol=()=>`<div class="card"><p><b>Postup riešenia</b></p><ol class="steps-sol">${q.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div>`;
+  hb.onclick=()=>{hb.disabled=true;fb.insertAdjacentHTML('afterbegin',`<p class="why"><b>Nápoveda:</b> <span class="formula">${q.hint}</span></p>`)};
+  const check=()=>{if(fin)return;const raw=inp.value.trim().replace(/\s/g,'').replace(',','.');const v=parseFloat(raw);fb.querySelectorAll('.msg').forEach(x=>x.remove());
+    if(raw===''||isNaN(v)){box.classList.add('no');fb.insertAdjacentHTML('beforeend','<p class="why msg">Zadaj výsledok ako číslo, napríklad 12,5.</p>');return}
+    tries++;const tol=Math.max(Math.abs(q.ans)*.02,.5*Math.pow(10,-q.dec)+1e-9);const ok=Math.abs(v-q.ans)<=tol;const res=fmt(q.ans,q.dec)+(q.unit?' '+q.unit:'');
+    if(ok){fin=true;box.classList.remove('no');box.classList.add('ok');inp.disabled=true;chk.disabled=true;hb.disabled=true;fb.insertAdjacentHTML('beforeend',`<p class="why msg"><b>Správne!</b> ${tries>1?'Na druhý pokus. ':''}Výsledok: ${res}</p>`+sol());onDone(true)}
+    else if(tries<2){box.classList.add('no');fb.insertAdjacentHTML('beforeend',`<p class="why msg"><b>Ešte nie.</b> Skontroluj jednotky aj výpočet a skús to znova.${hb.disabled?'':' Môžeš si otvoriť nápovedu.'}</p>`);inp.focus();inp.select()}
+    else{fin=true;inp.disabled=true;chk.disabled=true;hb.disabled=true;fb.insertAdjacentHTML('beforeend',`<p class="why msg"><b>Správny výsledok je ${res}.</b> Pozri si postup a skús ďalší príklad.</p>`+sol());onDone(false)}};
+  chk.onclick=check;inp.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+}
+
+/* ---------- calc trainer ---------- */
+const calcSt={topic:'mix',ok:0,n:0,streak:0,best:(store.get('sp_calc',{best:0})||{}).best||0};
+const topicsFor=()=>Object.entries(CALC).filter(([k,c])=>c.lv.includes(level));
+function openCalc(topic){if(topic)calcSt.topic=topic;show('calc')}
+function renderCalc(){const body=$('#calcBody');
+  if(level==='maly'){$('#calcLede').textContent='';body.innerHTML=`<div class="card"><p><b>Výpočty sú pre Kadetov a Inžinierov.</b></p><p>Malí piloti si môžu všetko vyskúšať v ihrisku. Ak chceš počítať, prepni si úroveň:</p><div class="row" style="margin-top:10px"><button class="btn" data-lv="kadet">Kadeti · 2. stupeň ZŠ</button><button class="btn sec" data-lv="ss">Inžinieri · SŠ</button></div></div>`;body.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{level=b.dataset.lv;store.set('sp_level',level);renderHome();labLevel();renderCalc()});return}
+  const tps=topicsFor();if(calcSt.topic!=='mix'&&!tps.find(t=>t[0]===calcSt.topic))calcSt.topic='mix';
+  $('#calcLede').textContent=level==='ss'?'Príklady na úrovni strednej školy: g = 9,81 m/s², viac krokov a prevody jednotiek. Hodnoty sa pri každom príklade menia.':'Príklady pre 2. stupeň ZŠ (g = 10 N/kg). Hodnoty sa pri každom príklade menia, takže výsledok sa nedá naučiť naspamäť.';
+  body.innerHTML=`<div class="lab-grp"><p class="eyebrow">Téma</p><div class="chips" id="cTopics">${[['mix','Mix všetkého'],...tps.map(([k,c])=>[k,c.name])].map(([k,n])=>`<button class="chip" data-k="${k}" aria-pressed="${calcSt.topic===k}">${n}</button>`).join('')}</div></div>
+  <div class="read" id="cScore"></div><div class="panel" id="cProb"></div>
+  <details class="cheat" style="margin-top:16px"><summary>Ťahák vzorcov</summary><div style="overflow-x:auto"><table>${CHEAT[level].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table></div></details>`;
+  body.querySelectorAll('#cTopics .chip').forEach(b=>b.onclick=()=>{calcSt.topic=b.dataset.k;renderCalc()});
+  newProblem()}
+function calcScore(){$('#cScore').innerHTML=`<span>Vyriešené <b>${calcSt.ok} / ${calcSt.n}</b></span><span>Séria <b>${calcSt.streak}</b></span><span>Najlepšia séria <b>${calcSt.best}</b></span>`}
+function newProblem(){calcScore();const tps=topicsFor();const key=calcSt.topic==='mix'?pick(tps)[0]:calcSt.topic;const q=CALC[key].gen(level);const p=$('#cProb');
+  p.innerHTML=`<div class="row"><span class="tag">${CALC[key].name}</span></div><div id="cNum"></div><div class="row" id="cNext" hidden><button class="btn hz-btn" id="cNextB">Ďalší príklad →</button></div>`;
+  numWidget($('#cNum'),q,ok=>{calcSt.n++;if(ok){calcSt.ok++;calcSt.streak++;calcSt.best=Math.max(calcSt.best,calcSt.streak)}else calcSt.streak=0;store.set('sp_calc',{best:calcSt.best});calcScore();$('#cNext').hidden=false;$('#cNextB').onclick=()=>{newProblem();$('#cProb').scrollIntoView({behavior:'smooth',block:'nearest'})};$('#cNextB').focus()},'c')}
+
+/* ---------- home ---------- */
+function renderHome(){document.querySelectorAll('.lv').forEach(b=>b.setAttribute('aria-pressed',b.dataset.level===level));const g=GUIDES[level];$('#gAva').innerHTML=g.svg;$('#gWho').innerHTML=`${g.who} <small>· ${g.role}</small>`;$('#gText').textContent=g.text;
+  $('#mlist').innerHTML=MISSIONS.map((m,i)=>{const st=stars[m.id+'_'+level]||0;return`<button class="mcard" data-i="${i}"><span class="mcode">${m.code}</span><div><h3>${L(m.title)}</h3><div class="tp">${L(m.topic)}</div></div><span class="stars" aria-label="${st} z 3 hviezd">${'★'.repeat(st)}<span class="off">${'★'.repeat(3-st)}</span></span></button>`}).join('');
+  document.querySelectorAll('.mcard').forEach(b=>b.onclick=()=>openMission(+b.dataset.i));}
+document.querySelectorAll('.lv').forEach(b=>b.onclick=()=>{level=b.dataset.level;store.set('sp_level',level);renderHome();labLevel()});
+$('#gSpk').onclick=()=>speak(GUIDES[level].text);
+function show(id){stopSpeak();['home','mission','lab','calc'].forEach(s=>$('#'+s).hidden=s!==id);$('#tabHome').setAttribute('aria-pressed',id==='home'||id==='mission');$('#tabLab').setAttribute('aria-pressed',id==='lab');$('#tabCalc').setAttribute('aria-pressed',id==='calc');if(id==='lab')labEnter();if(id==='calc')renderCalc();window.scrollTo(0,0)}
+$('#tabHome').onclick=()=>{renderHome();show('home')};$('#tabLab').onclick=()=>show('lab');$('#toLab').onclick=()=>show('lab');$('#tabCalc').onclick=()=>show('calc');$('#toCalc').onclick=()=>show('calc');$('#mBack').onclick=()=>{renderHome();show('home')};
+$('#enter').onclick=()=>{$('#splash').hidden=true};
+
+/* ---------- mission flow ---------- */
+let cur=null;
+const STEP_NAMES=['1 Predpovedz','2 Pozoruj','3 Vysvetli','4 Over si'];
+function renderSteps(i){$('#steps').innerHTML=STEP_NAMES.map((n,j)=>`<span class="${j===i?'on':j<i?'ok':''}">${n}</span>`).join('')}
+function openMission(i){const m=MISSIONS[i];const ctxv={ma:ri(60,80),mc:ri(12,20)*10};cur={m,i,c:ctxv,scene:m.scene(ctxv),pred:null};onSceneDone=sceneDone;
+  $('#mCode').textContent=m.code;$('#mCanvas').classList.toggle('tall',level==='ss'&&(m.id==='m1'||m.id==='m4'));$('#mTitle').textContent=L(m.title);show('mission');renderPredict();
+  $('#introEmb').innerHTML=m.emb;$('#introTopic').textContent=m.code+' · '+L(m.topic);$('#introTitle').textContent=L(m.title);$('#introText').textContent=L(m.intro);$('#intro').hidden=false;$('#introGo').focus();}
+$('#introGo').onclick=()=>{$('#intro').hidden=true;stopSpeak()};$('#introSpk').onclick=()=>speak($('#introTitle').textContent+'. '+$('#introText').textContent);
+const ava=()=>`<div class="ava">${GUIDES[level].svg}</div>`;
+function qText(q){const v=L(q);return typeof v==='function'?v(cur.c):v}
+function renderPredict(){renderSteps(0);cur.scene.reset();const m=cur.m;const q=qText(m.predict.q);const opts=shuffle(L(m.predict.opts)||m.predict.opts.kadet);
+  $('#mPanel').innerHTML=`<div class="say">${ava()}<div><p>${q}</p><button class="spk" id="pSpk">🔊 Prečítať</button></div></div><p class="tip">Najprv tipni. Za zlý tip sa body nestrhávajú – vedci tiež najprv hádajú a potom overujú.</p><div class="opts">${opts.map((o,j)=>`<button class="opt" data-j="${j}"><span class="k">${'ABCD'[j]}</span><span>${o[0]}</span></button>`).join('')}</div>`;
+  $('#pSpk').onclick=()=>speak(q+'. '+opts.map(o=>o[0]).join('. '));
+  document.querySelectorAll('#mPanel .opt').forEach(b=>b.onclick=()=>{cur.pred=opts[+b.dataset.j];renderObserve()});}
+function renderObserve(){renderSteps(1);stopSpeak();cur.scene.reset();$('#mPanel').innerHTML=`<p class="tip">Tvoj tip: <b>${cur.pred[0]}</b></p><div class="row"><button class="btn hz-btn" id="run">▶ Spustiť pokus</button><button class="btn sec" id="next" hidden>Čo sa stalo? →</button></div><p class="tip" id="obsTip">Sleduj scénu hore.</p>`;
+  $('#run').onclick=()=>{cur.scene.start();$('#run').disabled=true;$('#run').textContent='Pokus beží…';document.querySelector('.stage').scrollIntoView({behavior:'smooth',block:'nearest'})};$('#next').onclick=renderExplain;}
+function sceneDone(){const r=$('#run'),n=$('#next');if(r){r.disabled=false;r.textContent='↻ Zopakovať'}if(n)n.hidden=false}
+function renderExplain(){renderSteps(2);const m=cur.m,ok=!!cur.pred[1];const right=(L(m.predict.opts)||m.predict.opts.kadet).find(o=>o[1])[0];
+  const ex=L(m.explain);const myth=m.myth;
+  $('#mPanel').innerHTML=`<div class="card verdict ${ok?'':'no'}"><p><b>${ok?'Trafil si!':'Tvoj tip sa nepotvrdil.'}</b> ${ok?'Pokus potvrdil tvoju predpoveď.':'A to je v poriadku – presne takto sa robí veda: predpoveď, pokus, oprava.'}</p><p>Správne: <b>${right}</b></p></div>
+  <div class="say">${ava()}<div>${ex.map(p=>`<p style="font-weight:600;font-size:1rem;margin-bottom:8px">${p}</p>`).join('')}<button class="spk" id="eSpk">🔊 Prečítať</button></div></div>
+  <div class="card myth"><h4>${myth.t}</h4><p>${L(myth.d)}</p></div>
+  <div class="card fact"><h4>Vedel si?</h4><p>${m.fact}</p></div>
+  <div class="row"><button class="btn" id="toCheck">Over si to →</button><button class="btn sec" id="again">↻ Pozrieť pokus znova</button></div>`;
+  $('#eSpk').onclick=()=>speak(ex.join(' '));$('#toCheck').onclick=()=>startCheck();$('#again').onclick=()=>{cur.scene.start();document.querySelector('.stage').scrollIntoView({behavior:'smooth',block:'nearest'})};}
+function startCheck(){const pool=shuffle(L(cur.m.checks)).slice(0,2);cur.qs=pool.map(f=>{const q=f();q.opts=shuffle(q.opts);return q});if(level!=='maly'&&cur.m.calc){const k=L(cur.m.calc);if(CALC[k]&&CALC[k].lv.includes(level))cur.qs.push({type:'num',...CALC[k].gen(level)})}cur.qi=0;cur.score=0;renderQ()}
+function renderQ(){renderSteps(3);stopSpeak();const q=cur.qs[cur.qi];
+  if(q.type==='num'){const last=cur.qi+1>=cur.qs.length;$('#mPanel').innerHTML=`<span class="qnum">Otázka ${cur.qi+1} z ${cur.qs.length} · výpočet</span><div id="mNum"></div><div class="row" id="mNumNext" hidden><button class="btn" id="qNext">${last?'Dokončiť misiu':'Ďalšia otázka →'}</button></div>`;
+    numWidget($('#mNum'),q,ok=>{if(ok)cur.score++;$('#mNumNext').hidden=false;$('#qNext').onclick=()=>{cur.qi++;cur.qi<cur.qs.length?renderQ():finish()};$('#qNext').focus()},'m');return}$('#mPanel').innerHTML=`<span class="qnum">Otázka ${cur.qi+1} z ${cur.qs.length}</span><div class="say">${ava()}<div><p>${q.q}</p><button class="spk" id="qSpk">🔊 Prečítať</button></div></div><div class="opts">${q.opts.map((o,j)=>`<button class="opt" data-j="${j}"><span class="k">${'ABCD'[j]}</span><span>${o[0]}</span></button>`).join('')}</div><div id="qFb"></div>`;
+  $('#qSpk').onclick=()=>speak(q.q+'. '+q.opts.map(o=>o[0]).join('. '));
+  document.querySelectorAll('#mPanel .opt').forEach(b=>b.onclick=()=>{const o=q.opts[+b.dataset.j];const good=!!o[1];if(good)cur.score++;document.querySelectorAll('#mPanel .opt').forEach((x,j)=>{x.disabled=true;if(q.opts[j][1])x.classList.add('right');else if(x===b)x.classList.add('wrong')});
+    $('#qFb').innerHTML=`<p class="why"><b>${good?'Správne.':'Nie celkom.'}</b> ${q.why}</p><div class="row" style="margin-top:10px"><button class="btn" id="qNext">${cur.qi+1<cur.qs.length?'Ďalšia otázka →':'Dokončiť misiu'}</button></div>`;$('#qNext').onclick=()=>{cur.qi++;cur.qi<cur.qs.length?renderQ():finish()};$('#qNext').focus()});}
+function finish(){const nq=cur.qs.length;const st=nq<=2?1+cur.score:(cur.score>=nq?3:cur.score>=nq-1?2:1);const key=cur.m.id+'_'+level;stars[key]=Math.max(stars[key]||0,st);store.set('sp_stars',stars);renderSteps(4);
+  const nxt=cur.i+1<MISSIONS.length?cur.i+1:null;
+  $('#mPanel').innerHTML=`<div class="card result"><span class="eyebrow">Misia ${cur.m.code} splnená</span><div class="big">${'★'.repeat(st)}<span class="off">${'★'.repeat(3-st)}</span></div><p>Správne odpovede: <b>${cur.score} z ${nq}</b>. ${cur.score===nq?'Výborne, všetko správne!':cur.score>0?'Dobre! Pri návrate dostaneš iné otázky aj hodnoty.':'Skús misiu znova – otázky sa zakaždým zmenia.'}</p></div>
+  <div class="card"><p><b>Vyskúšaj v ihrisku:</b> ${cur.m.labTip}</p></div>
+  <div class="row">${nxt!==null?`<button class="btn" id="fNext">Ďalšia misia →</button>`:''}<button class="btn hz-btn" id="fLab">Do ihriska</button>${level!=='maly'?'<button class="btn sec" id="fCalc">Trénovať výpočty</button>':''}<button class="btn sec" id="fHome">Späť na misie</button></div>`;
+  if(nxt!==null)$('#fNext').onclick=()=>openMission(nxt);$('#fLab').onclick=()=>{show('lab');runExp(cur.m.labExp)};if(level!=='maly')$('#fCalc').onclick=()=>openCalc(L(cur.m.calc));$('#fHome').onclick=()=>{renderHome();show('home')};}
+
+/* ---------- lab ---------- */
+const ENVS={zem:{name:'Zem',g:9.81,air:true,mu:.5,sky:['#86BFE6','#E3F1F9'],ground:'#5E9B4A',top:'#4C8239',dark:false,sw:'#5E9B4A'},
+ lad:{name:'Klzisko',g:9.81,air:true,mu:.03,sky:['#A9D3EC','#EEF7FC'],ground:'#D4ECF7',top:'#B7DDF0',dark:false,sw:'#9FD2EC'},
+ mesiac:{name:'Mesiac',g:1.62,air:false,mu:.5,sky:['#04060C','#0B1020'],ground:'#8D8C88',top:'#74736F',dark:true,sw:'#8D8C88'},
+ vesmir:{name:'Vesmír',g:0,air:false,mu:0,sky:['#060B18','#13213D'],ground:null,dark:true,sw:'#13213D'}};
+const ITEMS={lopta:{name:'Lopta',m:.45,r:.16,c:.004,e:.75,roll:.06,col:'#E2572B'},debna:{name:'Debna',m:8,r:.3,c:.05,e:.12,roll:1},kladivo:{name:'Kladivo',m:1.3,r:.15,c:.003,e:.2,roll:1},pierko:{name:'Pierko',m:.005,r:.15,c:.13,e:.05,roll:1},ping:{name:'Pingpongová loptička',m:.0027,r:.06,c:.0006,e:.85,roll:.06,col:'#F7F3E6'}};
+const W=6;
+const lab={env:'zem',g:9.81,mu:.5,air:true,bodies:[],sel:null,showV:true,showF:false,trail:false,slow:false,paused:false,item:'lopta',t:0,grab:null,geo:null,id:0};
+function labEnter(){labLevel();renderLabUI()}
+function labLevel(){$('#sliderGrp').hidden=level==='maly';lab.showF=level!=='maly'&&lab.showF;renderLabUI()}
+function setEnv(k,keep){lab.env=k;const e=ENVS[k];lab.g=e.g;lab.mu=e.mu;lab.air=e.air;if(!keep)lab.bodies.forEach(b=>b.trail=[]);renderLabUI()}
+function renderLabUI(){$('#envChips').innerHTML=Object.entries(ENVS).map(([k,e])=>`<button class="chip" data-k="${k}" aria-pressed="${lab.env===k}"><span class="sw" style="background:${e.sw}"></span>${e.name}</button>`).join('');
+  $('#itemChips').innerHTML=Object.entries(ITEMS).map(([k,it])=>`<button class="chip" data-k="${k}" aria-pressed="${lab.item===k}">${it.name}${level==='maly'?'':` <small style="opacity:.7">${it.m<.01?fmt(it.m*1000,1)+' g':it.m<1?Math.round(it.m*1000)+' g':fmt(it.m,1)+' kg'}</small>`}</button>`).join('');
+  const T=[['showV','Šípka rýchlosti'],['showF',level==='maly'?'Šípky síl':'Šípky síl'],['trail','Stopa'],['air','Vzduch'],['slow','Spomaliť'],['paused','Pauza']];
+  $('#togChips').innerHTML=T.map(([k,n])=>`<button class="chip" data-t="${k}" aria-pressed="${!!lab[k]}">${n}</button>`).join('')+`<button class="chip" data-t="clear">Vyčistiť</button>`;
+  document.querySelectorAll('#envChips .chip').forEach(b=>b.onclick=()=>setEnv(b.dataset.k));
+  document.querySelectorAll('#itemChips .chip').forEach(b=>b.onclick=()=>{lab.item=b.dataset.k;renderLabUI()});
+  document.querySelectorAll('#togChips .chip').forEach(b=>b.onclick=()=>{const t=b.dataset.t;if(t==='clear'){lab.bodies=[];lab.sel=null}else lab[t]=!lab[t];renderLabUI()});
+  $('#sG').value=lab.g;$('#oG').textContent=fmt(lab.g,2)+' m/s²';$('#sMu').value=lab.mu;$('#oMu').textContent=fmt(lab.mu,2);
+  $('#exps').innerHTML=EXPS.map((x,i)=>`<button class="exp" data-i="${i}"><b>${x.t}</b><span>${L(x.d)}</span></button>`).join('');
+  document.querySelectorAll('.exp').forEach(b=>b.onclick=()=>{runExp(+b.dataset.i);document.querySelector('#lab .stage').scrollIntoView({behavior:'smooth',block:'nearest'})});}
+$('#sG').oninput=e=>{lab.g=+e.target.value;$('#oG').textContent=fmt(lab.g,2)+' m/s²'};
+$('#sMu').oninput=e=>{lab.mu=+e.target.value;$('#oMu').textContent=fmt(lab.mu,2)};
+function addBody(k,x,y,vx=0,vy=0){const it=ITEMS[k];const b={id:++lab.id,k,...it,x,y,vx,vy,trail:[],hist:[],F:{},floor:false,rot:0};lab.bodies.push(b);if(lab.bodies.length>24)lab.bodies.shift();lab.sel=b;return b}
+const EXPS=[
+ {t:'Pierko a kladivo',d:{maly:'Pustíme ich naraz. Potom prepni na Mesiac a skús znova.',kadet:'Pusti ich na Zemi, potom na Mesiaci. Čo sa zmení?',ss:'Porovnaj Zem, Zem bez vzduchu a Mesiac. Sleduj v(t) pierka.'},run(){setEnv(lab.env==='mesiac'?'mesiac':'zem');lab.bodies=[];const H=lab.geo?lab.geo.Hc*.8:3;addBody('kladivo',W*.35,H);addBody('pierko',W*.65,H)}},
+ {t:'Klzisko a tráva',d:{maly:'Debna dostane štuchanec. Ako ďaleko dôjde?',kadet:'Rovnaký štuchanec, iné trenie. Porovnaj Klzisko a Zem.',ss:'Rovnaká počiatočná rýchlosť 4 m/s. Odhadni dráhu: s = v²/(2μg).'},run(){if(lab.env!=='lad'&&lab.env!=='zem')setEnv('lad');lab.bodies=[];addBody('debna',.4,.3,4,0)}},
+ {t:'Biliard vo vesmíre',d:{maly:'Ľahká lopta narazí do ťažkej debny. Kto sa pohne viac?',kadet:'Ľahká lopta narazí do ťažkej debny. Akcia a reakcia v praxi.',ss:'Zrážka 0,45 kg a 8 kg. Porovnaj zmeny rýchlostí oboch telies.'},run(){setEnv('vesmir');lab.bodies=[];const H=lab.geo?lab.geo.Hc/2:2;const d=addBody('debna',W*.62,H);addBody('lopta',.5,H,5,0);lab.sel=d}},
+ {t:'Pingpong a lopta',d:{maly:'Obe sú guľaté. Ktorá dopadne skôr?',kadet:'Rovnaký tvar, iná hmotnosť – a vzduch. Potom vypni Vzduch.',ss:'Pingpongová loptička má malú medznú rýchlosť. Zapni Stopu a porovnaj.'},run(){setEnv('zem');lab.bodies=[];const H=lab.geo?lab.geo.Hc*.92:3.5;addBody('lopta',W*.35,H);addBody('ping',W*.65,H)}},
+ {t:'Stojaca debna',d:{maly:'Debna sa nehýbe. Pôsobí na ňu vôbec niečo? Pozri sa na šípky.',kadet:'Debna stojí, a predsa na ňu pôsobia sily. Ktoré a prečo sa rušia?',ss:'Nájdi dvojicu síl v rovnováhe. V čom sa líši od dvojice akcia – reakcia?'},run(){setEnv('zem');lab.bodies=[];addBody('debna',W/2,.3);lab.showF=true}}
+];
+function runExp(i){EXPS[i].run();renderLabUI()}
+/* physics */
+function labPhys(dt){const n=Math.ceil(dt/(1/240)),h=dt/n;const G=lab.geo;if(!G)return;const Hc=G.Hc;const space=ENVS[lab.env].ground===null;
+ for(let s=0;s<n;s++){lab.t+=h;for(const b of lab.bodies){if(b===lab.grab)continue;let ax=0,ay=-lab.g;const sp=Math.hypot(b.vx,b.vy);b.F={g:lab.g};
+   if(lab.air&&sp>1e-4){let ad=b.c*sp*sp/b.m;ad=Math.min(ad,sp/h);ax-=ad*b.vx/sp;ay-=ad*b.vy/sp;b.F.d=[-ad*b.vx/sp,-ad*b.vy/sp]}
+   b.vx+=ax*h;b.vy+=ay*h;
+   if(b.floor&&lab.g>0&&!space){const dv=lab.mu*b.roll*lab.g*h;if(Math.abs(b.vx)<=dv)b.vx=0;else{b.vx-=Math.sign(b.vx)*dv;b.F.f=-Math.sign(b.vx)*lab.mu*b.roll*lab.g}}
+   b.x+=b.vx*h;b.y+=b.vy*h;b.floor=false;
+   if(b.y-b.r<0){b.y=b.r;if(b.vy<0){b.vy=-b.vy*b.e;if(Math.abs(b.vy)<.12)b.vy=0}b.floor=true}
+   if(b.y+b.r>Hc){b.y=Hc-b.r;if(b.vy>0)b.vy=-b.vy*b.e}
+   if(b.x-b.r<0){b.x=b.r;if(b.vx<0)b.vx=-b.vx*b.e}if(b.x+b.r>W){b.x=W-b.r;if(b.vx>0)b.vx=-b.vx*b.e}
+   if(b.k==='pierko')b.rot=Math.sin(lab.t*6+b.id)*Math.min(.6,Math.abs(b.vy)*2)}
+  const B=lab.bodies;for(let i=0;i<B.length;i++)for(let j=i+1;j<B.length;j++){const a=B[i],c=B[j];const dx=c.x-a.x,dy=c.y-a.y,d=Math.hypot(dx,dy),R=a.r+c.r;if(d>0&&d<R){const nx=dx/d,ny=dy/d;const ia=a===lab.grab?0:1/a.m,ic=c===lab.grab?0:1/c.m;if(ia+ic===0)continue;const ov=R-d;a.x-=nx*ov*ia/(ia+ic);a.y-=ny*ov*ia/(ia+ic);c.x+=nx*ov*ic/(ia+ic);c.y+=ny*ov*ic/(ia+ic);const vr=(c.vx-a.vx)*nx+(c.vy-a.vy)*ny;if(vr<0){const e=Math.min(a.e,c.e),jj=-(1+e)*vr/(ia+ic);a.vx-=jj*ia*nx;a.vy-=jj*ia*ny;c.vx+=jj*ic*nx;c.vy+=jj*ic*ny}}}}
+ for(const b of lab.bodies){if(lab.trail){b.trail.push([b.x,b.y]);if(b.trail.length>140)b.trail.shift()}}
+ const sb=lab.sel;if(sb){sb.hist.push([lab.t,Math.hypot(sb.vx,sb.vy)]);while(sb.hist.length&&lab.t-sb.hist[0][0]>6)sb.hist.shift()}}
+function labStep(dt){if(lab.paused)return;labPhys(dt*(lab.slow?.25:1))}
+function labDraw(){const cv=$('#labCanvas');const{ctx,w,h}=fitCanvas(cv);const E=ENVS[lab.env];const space=E.ground===null;const gp=space?10:h*.1;const floorPx=h-gp;const k=w/W;const Hc=floorPx/k;lab.geo={k,floorPx,Hc,w,h};
+ const g=ctx.createLinearGradient(0,0,0,floorPx);g.addColorStop(0,E.sky[0]);g.addColorStop(1,E.sky[1]);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);if(E.dark)stars_(ctx,0,0,w,floorPx);
+ if(space){ctx.strokeStyle='#4A5A72';ctx.lineWidth=10;ctx.strokeRect(0,0,w,h);ctx.fillStyle='rgba(255,255,255,.18)';for(let x=20;x<w;x+=40){ctx.beginPath();ctx.arc(x,5,1.5,0,7);ctx.arc(x,h-5,1.5,0,7);ctx.fill()}}
+ else{ctx.fillStyle=E.ground;ctx.fillRect(0,floorPx,w,gp);ctx.fillStyle=E.top;ctx.fillRect(0,floorPx,w,4);if(lab.env==='mesiac'){ctx.fillStyle='#74736F';[[.15,.5],[.5,.6],[.8,.4]].forEach(([a,b])=>{ctx.beginPath();ctx.ellipse(w*a,floorPx+gp*b,14,4,0,0,7);ctx.fill()})}
+  if(lab.env==='mesiac'){ctx.fillStyle='#2E6FB5';ctx.beginPath();ctx.arc(w*.88,h*.13,h*.05,0,7);ctx.fill()}}
+ const tc=E.dark?'rgba(255,255,255,.55)':'rgba(10,25,40,.55)';ctx.fillStyle=tc;ctx.strokeStyle=tc;ctx.font=`600 10px ${MONO}`;ctx.lineWidth=1;
+ for(let m=1;m<W;m++){const x=m*k;ctx.beginPath();ctx.moveTo(x,floorPx);ctx.lineTo(x,floorPx-6);ctx.stroke();if(!space)ctx.fillText(m+' m',x-9,floorPx+(gp>18?14:-9))}
+ for(let m=1;m<Hc;m++){const y=floorPx-m*k;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(6,y);ctx.stroke();ctx.fillText(m+' m',9,y+3)}
+ if(!lab.air&&E.air)pill(ctx,'bez vzduchu (vákuum)',w-150,8,'rgba(242,177,10,.92)','#1A1A12');
+ const P=(x,y)=>[x*k,floorPx-y*k];
+ if(lab.trail)for(const b of lab.bodies){ctx.fillStyle=E.dark?'rgba(255,224,138,.6)':'rgba(20,40,80,.4)';b.trail.forEach((p,i)=>{if(i%4)return;const[x,y]=P(p[0],p[1]);ctx.beginPath();ctx.arc(x,y,1.8,0,7);ctx.fill()})}
+ for(const b of lab.bodies){const[x,y]=P(b.x,b.y),r=b.r*k;
+  if(b===lab.sel){ctx.strokeStyle=E.dark?'rgba(255,255,255,.6)':'rgba(29,88,201,.7)';ctx.setLineDash([4,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,r+6,0,7);ctx.stroke();ctx.setLineDash([])}
+  if(b.k==='debna')drawCrate(ctx,x,y,r*1.9,'O-7');else if(b.k==='kladivo')drawHammer(ctx,x,y,r*2);else if(b.k==='pierko')drawFeather(ctx,x,y,r*2.2,b.rot);else drawBall(ctx,x,y,r,b.col,b.k==='lopta')}
+ for(const b of lab.bodies){const[x,y]=P(b.x,b.y),r=b.r*k;const lbl=level!=='maly';
+  if(lab.showV){const sp=Math.hypot(b.vx,b.vy);if(sp>.05){const L_=Math.min(130,sp*22);arrow(ctx,x,y,x+b.vx/sp*L_,y-b.vy/sp*L_,'#3FA9FF',3,lbl&&b===lab.sel?'v':'')}}
+  if(lab.showF&&b!==lab.grab){const s=6;if(lab.g>0)arrow(ctx,x,y,x,y+Math.min(120,lab.g*s),'#F2B10A',2.5,lbl?'Fg':'');if(b.F&&b.F.d){arrow(ctx,x,y,x+Math.max(-120,Math.min(120,b.F.d[0]*s)),y-Math.max(-120,Math.min(120,b.F.d[1]*s)),'#B57BFF',2.5,lbl?'Fo':'')}if(b.F&&b.F.f&&b.floor){arrow(ctx,x,y+r,x+b.F.f*s,y+r,'#FF6A5A',2.5,lbl?'Ft':'')}if(b.floor&&lab.g>0&&ENVS[lab.env].ground!==null)arrow(ctx,x+5,y,x+5,y-Math.min(120,lab.g*s),'#4ADE80',2.5,lbl?'Fn':'')}}
+ if(level==='ss'&&lab.sel&&lab.sel.hist.length>2){const gw=Math.min(170,w*.42),gh=70,gx=w-gw-8,gy=8+(lab.env==='mesiac'||(!lab.air&&E.air)?30:0);ctx.fillStyle='rgba(8,14,26,.72)';rr(ctx,gx,gy,gw,gh,8);ctx.fill();const hs=lab.sel.hist,t0=hs[0][0],vm=Math.max(1,...hs.map(p=>p[1]));ctx.strokeStyle='#9FE7C4';ctx.lineWidth=2;ctx.beginPath();hs.forEach((p,i)=>{const X=gx+8+(p[0]-t0)/6*(gw-16),Y=gy+gh-10-p[1]/vm*(gh-24);i?ctx.lineTo(X,Y):ctx.moveTo(X,Y)});ctx.stroke();ctx.fillStyle='#fff';ctx.font=`600 9px ${MONO}`;ctx.fillText(`v(t) · max ${fmt(vm,1)} m/s`,gx+8,gy+12)}
+ if(!lab.bodies.length)label(ctx,'Ťukni sem a pridaj predmet',w/2,h*.45,E.dark?'#fff':'#14304A',14,BODY,'center');
+ if(lab.paused)label(ctx,'❚❚ pauza',w/2,22,'#F2B10A',13,BODY,'center');}
+let lastRead=0;function labReadout(now){if(now-lastRead<120)return;lastRead=now;const b=lab.sel;const el=$('#labRead');if(!b){el.innerHTML=`<span><b>${ENVS[lab.env].name}</b></span><span>g = ${fmt(lab.g,2)} m/s²</span>${level!=='maly'?`<span>μ = ${fmt(lab.mu,2)}</span>`:''}<span>${lab.air?'so vzduchom':'bez vzduchu'}</span>`;return}
+ const sp=Math.hypot(b.vx,b.vy);if(level==='maly'){el.innerHTML=`<span><b>${b.name}</b></span><span>${sp<.05?'stojí':sp<2?'ide pomaly':sp<6?'ide rýchlo':'letí veľmi rýchlo!'}</span><span>${ENVS[lab.env].name}</span>`;return}
+ const m=b.m<.01?fmt(b.m*1000,1)+' g':b.m<1?Math.round(b.m*1000)+' g':fmt(b.m,1)+' kg';const Ek=.5*b.m*sp*sp;
+ el.innerHTML=`<span><b>${b.name}</b></span><span>m = ${m}</span><span>v = ${fmt(sp,2)} m/s</span><span>výška ${fmt(Math.max(0,b.y-b.r),2)} m</span>${level==='ss'?`<span>Ek = ${Ek<.1?fmt(Ek*1000,1)+' mJ':fmt(Ek,2)+' J'}</span><span>p = ${fmt(b.m*sp,3)} kg·m/s</span>`:''}`}
+/* pointer */
+(function(){const cv=$('#labCanvas');let samples=[];
+ const toW=e=>{const r=cv.getBoundingClientRect();const G=lab.geo;if(!G)return[0,0];return[(e.clientX-r.left)/G.k,(G.floorPx-(e.clientY-r.top))/G.k]};
+ cv.addEventListener('pointerdown',e=>{const[x,y]=toW(e);let hit=null,bd=1e9;for(const b of lab.bodies){const d=Math.hypot(b.x-x,b.y-y);if(d<b.r+.25&&d<bd){bd=d;hit=b}}
+  if(hit){lab.grab=hit;lab.sel=hit;hit.trail=[];hit.hist=[];samples=[[performance.now(),x,y]];try{cv.setPointerCapture(e.pointerId)}catch(_){}}
+  else{const it=ITEMS[lab.item];const G=lab.geo;const yy=Math.max(it.r,Math.min(G?G.Hc-it.r:3,y)),xx=Math.max(it.r,Math.min(W-it.r,x));addBody(lab.item,xx,yy)}e.preventDefault()});
+ cv.addEventListener('pointermove',e=>{if(!lab.grab)return;const[x,y]=toW(e);const b=lab.grab,G=lab.geo;b.x=Math.max(b.r,Math.min(W-b.r,x));b.y=Math.max(b.r,Math.min(G.Hc-b.r,y));b.vx=0;b.vy=0;samples.push([performance.now(),b.x,b.y]);while(samples.length>2&&performance.now()-samples[0][0]>90)samples.shift()});
+ const up=()=>{if(!lab.grab)return;const b=lab.grab;if(samples.length>1){const a=samples[0],z=samples[samples.length-1];const dt=(z[0]-a[0])/1000;if(dt>.005){let vx=(z[1]-a[1])/dt,vy=(z[2]-a[2])/dt;const sp=Math.hypot(vx,vy),mx=14;if(sp>mx){vx*=mx/sp;vy*=mx/sp}b.vx=vx;b.vy=vy}}lab.grab=null;samples=[]};
+ cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);})();
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+ if(!$('#mission').hidden&&cur){cur.scene.step(dt);const{ctx,w,h}=fitCanvas($('#mCanvas'));cur.scene.draw(ctx,w,h)}
+ if(!$('#lab').hidden){labStep(dt);labDraw();labReadout(now)}
+ requestAnimationFrame(loop)}
+renderHome();renderLabUI();requestAnimationFrame(loop);
+</script>
